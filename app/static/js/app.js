@@ -1,4 +1,5 @@
 import { createGame, getSession, login, logout, sendMove } from './api.js';
+import { playClick, playError, playPlace, playWin, isSoundEnabled, toggleSound } from './audio.js';
 import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js';
 
 const loginViewEl = document.querySelector('#loginView');
@@ -20,9 +21,14 @@ const bluePlayerCardEl = document.querySelector('#bluePlayerCard');
 const newGameButton = document.querySelector('#newGameButton');
 const modalNewGameButton = document.querySelector('#modalNewGameButton');
 const logoutButton = document.querySelector('#logoutButton');
+
 const themeToggle = document.querySelector('#themeToggle');
 const themeToggleIcon = document.querySelector('#themeToggleIcon');
 const themeToggleText = document.querySelector('#themeToggleText');
+const soundToggle = document.querySelector('#soundToggle');
+const soundToggleIcon = document.querySelector('#soundToggleIcon');
+const soundToggleText = document.querySelector('#soundToggleText');
+
 const gameOverEl = document.querySelector('#gameOver');
 const winnerTextEl = document.querySelector('#winnerText');
 const winnerDotEl = document.querySelector('#winnerDot');
@@ -79,7 +85,21 @@ function renderPiece(cell, player) {
   const piece = document.createElement('span');
   piece.className = `piece ${player === 1 ? 'red' : 'blue'}`;
   cell.appendChild(piece);
-  cell.classList.add('occupied');
+  cell.classList.add('occupied', 'just-placed');
+
+  window.setTimeout(() => {
+    cell.classList.remove('just-placed');
+  }, 360);
+}
+
+function markInvalidCell(cell) {
+  cell.classList.remove('invalid');
+  void cell.offsetWidth;
+  cell.classList.add('invalid');
+
+  window.setTimeout(() => {
+    cell.classList.remove('invalid');
+  }, 280);
 }
 
 function highlightWinningLine(line) {
@@ -104,9 +124,11 @@ function showWinner(player) {
   winnerDotEl.classList.toggle('red', isRed);
   winnerDotEl.classList.toggle('blue', !isRed);
 
+  playWin();
+
   gameOverTimer = window.setTimeout(() => {
     gameOverEl.classList.remove('hidden');
-  }, 700);
+  }, 780);
 }
 
 async function onCellClick(event) {
@@ -116,7 +138,11 @@ async function onCellClick(event) {
   const row = Number(cell.dataset.row);
   const col = Number(cell.dataset.col);
 
-  if (board[row][col] !== 0) return;
+  if (board[row][col] !== 0) {
+    markInvalidCell(cell);
+    playError();
+    return;
+  }
 
   locked = true;
 
@@ -124,21 +150,25 @@ async function onCellClick(event) {
     const result = await sendMove(gameId, row, col);
     board[row][col] = result.player;
     renderPiece(cell, result.player);
+    playPlace(result.player);
 
     if (result.winner) {
       gameFinished = true;
       const winningLine = findWinningLine(board, row, col, result.player);
       highlightWinningLine(winningLine);
-      showWinner(result.winner);
+      window.setTimeout(() => showWinner(result.winner), 180);
     } else {
       currentPlayer = result.next_player;
       updateStatus();
     }
   } catch (error) {
+    playError();
+
     if (error.message === 'Bejelentkezés szükséges.') {
       showLogin();
       return;
     }
+
     alert(error.message);
   } finally {
     locked = false;
@@ -163,10 +193,13 @@ async function startNewGame() {
     buildBoard();
     updateStatus();
   } catch (error) {
+    playError();
+
     if (error.message === 'Bejelentkezés szükséges.') {
       showLogin();
       return;
     }
+
     alert(error.message);
   } finally {
     locked = false;
@@ -200,8 +233,10 @@ async function onLoginSubmit(event) {
 
   try {
     const result = await login(usernameInputEl.value, passwordInputEl.value);
+    playClick();
     await showGame(result.username);
   } catch (error) {
+    playError();
     loginErrorEl.textContent = error.message;
     loginErrorEl.classList.remove('hidden');
     passwordInputEl.select();
@@ -245,8 +280,27 @@ function loadTheme() {
   applyTheme(saved === 'ivory' ? 'ivory' : 'midnight');
 }
 
+function updateSoundToggle() {
+  const enabled = isSoundEnabled();
+
+  soundToggleIcon.textContent = enabled ? '🔊' : '🔇';
+  soundToggleText.textContent = enabled ? 'HANG' : 'NÉMA';
+  soundToggle.classList.toggle('muted', !enabled);
+  soundToggle.setAttribute('aria-pressed', enabled ? 'false' : 'true');
+  soundToggle.setAttribute('aria-label', enabled ? 'Hang kikapcsolása' : 'Hang bekapcsolása');
+  soundToggle.title = enabled ? 'Hang kikapcsolása' : 'Hang bekapcsolása';
+}
+
+function onSoundToggle() {
+  const enabled = toggleSound();
+  updateSoundToggle();
+
+  if (enabled) playClick();
+}
+
 async function initialize() {
   loadTheme();
+  updateSoundToggle();
   buildCoordinates();
 
   try {
@@ -262,10 +316,21 @@ async function initialize() {
   }
 }
 
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+
+  if (!button || button.classList.contains('cell') || button === soundToggle || button === loginButtonEl) {
+    return;
+  }
+
+  playClick();
+});
+
 loginFormEl.addEventListener('submit', onLoginSubmit);
 newGameButton.addEventListener('click', startNewGame);
 modalNewGameButton.addEventListener('click', startNewGame);
 logoutButton.addEventListener('click', onLogout);
 themeToggle.addEventListener('click', toggleTheme);
+soundToggle.addEventListener('click', onSoundToggle);
 
 initialize();
