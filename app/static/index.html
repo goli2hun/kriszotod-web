@@ -24,7 +24,7 @@
     </header>
 
     <section class="game-layout">
-      <aside class="player-card player-red">
+      <aside id="redPlayerCard" class="player-card player-red active">
         <div class="avatar avatar-red">P</div>
         <div class="player-copy">
           <span class="player-label">PIROS</span>
@@ -44,7 +44,7 @@
         </div>
       </section>
 
-      <aside class="player-card player-blue">
+      <aside id="bluePlayerCard" class="player-card player-blue">
         <div class="avatar avatar-blue">K</div>
         <div class="player-copy">
           <span class="player-label">KÉK</span>
@@ -64,6 +64,10 @@
   <div id="gameOver" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="winnerText">
     <div class="modal-card">
       <p class="eyebrow">ÖTÖDÖLŐ!</p>
+      <div class="winner-badge">
+        <span id="winnerDot" class="status-dot red"></span>
+        <span id="winnerSubtitle">ÖT EGYMÁS MELLETT</span>
+      </div>
       <h2 id="winnerText">PIROS NYERT!</h2>
       <button id="modalNewGameButton" class="primary-button" type="button">ÚJ JÁTÉK</button>
     </div>
