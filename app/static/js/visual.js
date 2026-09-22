@@ -125,7 +125,7 @@ export function animatePiecePlacement(cell, player) {
   createParticles(cell, player === 1 ? 'red' : 'blue', 5);
 }
 
-export function markLastMove(cell) {
+export function markLastMove(cell, animate = true) {
   if (!cell) return;
 
   const board = cell.closest('.board');
