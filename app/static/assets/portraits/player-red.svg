@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-labelledby="title desc">
+  <title id="title">Piros játékos portré</title>
+  <desc id="desc">Modern, stilizált női játékosportré piros színvilággal.</desc>
+  <defs>
+    <linearGradient id="bg" x1="20" y1="12" x2="168" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff7b86"/><stop offset="1" stop-color="#a70c2c"/>
+    </linearGradient>
+    <linearGradient id="shirt" x1="60" y1="122" x2="140" y2="188" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff5364"/><stop offset="1" stop-color="#9f0d2a"/>
+    </linearGradient>
+    <radialGradient id="skin" cx="0" cy="0" r="1" gradientTransform="translate(85 67) rotate(48) scale(72 68)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffd9c3"/><stop offset="1" stop-color="#e9a88f"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="#4b0716" flood-opacity=".28"/>
+    </filter>
+  </defs>
+  <rect width="192" height="192" rx="54" fill="url(#bg)"/>
+  <circle cx="145" cy="38" r="34" fill="#fff" opacity=".08"/>
+  <circle cx="35" cy="154" r="49" fill="#380614" opacity=".10"/>
+  <g filter="url(#shadow)">
+    <path d="M45 188c4-34 22-54 51-54s48 20 52 54H45Z" fill="url(#shirt)"/>
+    <path d="M66 122c-14-13-19-33-14-53 6-25 23-40 45-40 24 0 43 17 47 44 3 19-3 38-17 50-15 13-45 13-61-1Z" fill="#4c1830"/>
+    <path d="M63 78c0-28 13-45 35-45 23 0 38 18 38 47 0 34-16 55-38 55-21 0-35-22-35-57Z" fill="url(#skin)"/>
+    <path d="M59 75c4-29 17-44 39-44 26 0 42 20 41 51-7-7-13-16-17-27-14 14-34 21-60 20h-3Z" fill="#3d1529"/>
+    <path d="M61 82c-7-2-11 3-9 11 2 8 6 12 13 12l-4-23Zm76 0c7-2 11 3 9 11-2 8-6 12-13 12l4-23Z" fill="#e8a288"/>
+    <ellipse cx="84" cy="86" rx="4" ry="5" fill="#40251f"/>
+    <ellipse cx="113" cy="86" rx="4" ry="5" fill="#40251f"/>
+    <path d="M88 108c7 5 14 5 21 0" fill="none" stroke="#b94f59" stroke-width="4" stroke-linecap="round"/>
+    <path d="M79 76c5-3 10-4 15-2M105 74c5-2 10-1 15 2" fill="none" stroke="#51261f" stroke-width="3" stroke-linecap="round"/>
+    <path d="M74 136c7 12 16 18 24 18s18-6 26-18" fill="#fff" opacity=".14"/>
+  </g>
+</svg>
