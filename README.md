@@ -10,7 +10,7 @@ Egyszerű, modern webes öt-amőba játék két váltható designnal.
 - Nginx reverse proxy
 - systemd
 
-A v0.1 szándékosan nem használ frameworköt a frontendhez és nem használ Three.js-t. A Three.js később opcionálisan bevethető látványeffektekhez, de a jelenlegi UI-hoz felesleges lenne.
+A frontend szándékosan nem használ frameworköt és jelenleg Three.js-t sem. A Three.js később opcionálisan bevethető látványeffektekhez, de a jelenlegi UI-hoz felesleges lenne.
 
 ## Funkciók
 
@@ -22,9 +22,12 @@ A v0.1 szándékosan nem használ frameworköt a frontendhez és nem használ Th
 - játékmenet mentése SQLite-ba
 - két design: Midnight és Ivory
 - designváltás egy gombbal, localStorage megjegyzéssel
+- hover korong-preview
+- aktív játékos vizuális kiemelése
+- győztes sor animált kiemelése
+- animált győzelmi modal
 
 Telepítéshez lásd: `INSTALL.md`.
-
 
 ## v0.2 UI frissítés
 
@@ -33,3 +36,12 @@ Telepítéshez lásd: `INSTALL.md`.
 - A világos Ivory téma melegebb, fa-hatású táblát kapott.
 - Hover korong-preview az aktuális játékos színével.
 - Kompaktabb fejléc és finomított reszponzív elrendezés.
+
+## v0.3 győzelmi visszajelzés
+
+- Az aktuális játékos kártyája automatikusan kiemelődik.
+- Győzelemkor a teljes összefüggő nyertes vonal arany fényt kap.
+- A nyertes korongok pulzáló animációt kapnak.
+- A győzelmi modal rövid késleltetéssel jelenik meg, így előbb látható a nyertes sor.
+- A modal megjelenése animált.
+- Játék vége után további lépés nem küldhető.
