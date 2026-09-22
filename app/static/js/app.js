@@ -1,5 +1,5 @@
 import { createGame, getSession, login, logout, sendMove } from './api.js';
-import { playClick, playError, playPlace, playWin, isSoundEnabled, toggleSound } from './audio.js';
+import { playClick, playError, playPlace, playWin, isSoundEnabled, toggleSound, unlockAudio } from './audio.js';
 import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js';
 
 const loginViewEl = document.querySelector('#loginView');
@@ -134,6 +134,8 @@ function showWinner(player) {
 async function onCellClick(event) {
   if (locked || gameFinished || !gameId) return;
 
+  unlockAudio();
+
   const cell = event.currentTarget;
   const row = Number(cell.dataset.row);
   const col = Number(cell.dataset.col);
@@ -226,6 +228,7 @@ async function showGame(username) {
 
 async function onLoginSubmit(event) {
   event.preventDefault();
+  unlockAudio();
 
   loginErrorEl.classList.add('hidden');
   loginButtonEl.disabled = true;
