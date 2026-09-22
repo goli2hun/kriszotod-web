@@ -3,19 +3,33 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from .auth import (
+    COOKIE_NAME,
+    SESSION_MAX_AGE,
+    create_session,
+    delete_session,
+    get_current_user,
+    require_user,
+    verify_password,
+)
 from .db import connect, init_db
 from .game_logic import BOARD_SIZE, is_winning_move
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 
-app = FastAPI(title="Krisz Ötödölő", version="0.1.0")
+app = FastAPI(title="Krisz Ötödölő", version="0.4.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+class LoginRequest(BaseModel):
+    username: str = Field(min_length=1, max_length=80)
+    password: str = Field(min_length=1, max_length=200)
 
 
 class MoveRequest(BaseModel):
@@ -48,22 +62,92 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/api/games")
-def create_game() -> dict[str, int | str]:
+@app.get("/api/auth/me")
+def auth_me(request: Request) -> dict[str, str | bool | None]:
+    user = get_current_user(request)
+    return {
+        "authenticated": user is not None,
+        "username": user["username"] if user is not None else None,
+    }
+
+
+@app.post("/api/auth/login")
+def auth_login(payload: LoginRequest, request: Request, response: Response) -> dict[str, str]:
+    username = payload.username.strip()
+
     with connect() as conn:
-        cursor = conn.execute("INSERT INTO games(status) VALUES ('active')")
+        user = conn.execute(
+            """
+            SELECT id, username, password_salt, password_hash
+            FROM users
+            WHERE username = ? COLLATE NOCASE
+              AND active = 1
+            """,
+            (username,),
+        ).fetchone()
+
+    if user is None or not verify_password(
+        payload.password,
+        user["password_salt"],
+        user["password_hash"],
+    ):
+        raise HTTPException(status_code=401, detail="Hibás felhasználónév vagy jelszó.")
+
+    token = create_session(int(user["id"]))
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=token,
+        max_age=SESSION_MAX_AGE,
+        httponly=True,
+        samesite="lax",
+        secure=_is_https(request),
+        path="/",
+    )
+
+    return {"username": user["username"]}
+
+
+@app.post("/api/auth/logout")
+def auth_logout(request: Request, response: Response) -> dict[str, str]:
+    delete_session(request.cookies.get(COOKIE_NAME))
+    response.delete_cookie(COOKIE_NAME, path="/")
+    return {"status": "ok"}
+
+
+@app.post("/api/games")
+def create_game(request: Request) -> dict[str, int | str]:
+    user = require_user(request)
+
+    with connect() as conn:
+        cursor = conn.execute(
+            "INSERT INTO games(user_id, status) VALUES (?, 'active')",
+            (user["id"],),
+        )
         game_id = int(cursor.lastrowid)
+
     return {"game_id": game_id, "status": "active", "next_player": 1}
 
 
 @app.get("/api/games/{game_id}")
-def get_game(game_id: int) -> dict:
+def get_game(game_id: int, request: Request) -> dict:
+    user = require_user(request)
+
     with connect() as conn:
-        game = conn.execute("SELECT * FROM games WHERE id = ?", (game_id,)).fetchone()
+        game = conn.execute(
+            "SELECT * FROM games WHERE id = ? AND user_id = ?",
+            (game_id, user["id"]),
+        ).fetchone()
+
         if game is None:
             raise HTTPException(status_code=404, detail="Game not found")
+
         moves = conn.execute(
-            "SELECT move_no, player, row_idx, col_idx FROM moves WHERE game_id = ? ORDER BY move_no",
+            """
+            SELECT move_no, player, row_idx, col_idx
+            FROM moves
+            WHERE game_id = ?
+            ORDER BY move_no
+            """,
             (game_id,),
         ).fetchall()
 
@@ -76,16 +160,28 @@ def get_game(game_id: int) -> dict:
 
 
 @app.post("/api/games/{game_id}/moves", response_model=MoveResponse)
-def make_move(game_id: int, move: MoveRequest) -> MoveResponse:
+def make_move(game_id: int, move: MoveRequest, request: Request) -> MoveResponse:
+    user = require_user(request)
+
     with connect() as conn:
-        game = conn.execute("SELECT * FROM games WHERE id = ?", (game_id,)).fetchone()
+        game = conn.execute(
+            "SELECT * FROM games WHERE id = ? AND user_id = ?",
+            (game_id, user["id"]),
+        ).fetchone()
+
         if game is None:
             raise HTTPException(status_code=404, detail="Game not found")
+
         if game["status"] != "active":
             raise HTTPException(status_code=409, detail="Game already finished")
 
         moves = conn.execute(
-            "SELECT move_no, player, row_idx, col_idx FROM moves WHERE game_id = ? ORDER BY move_no",
+            """
+            SELECT move_no, player, row_idx, col_idx
+            FROM moves
+            WHERE game_id = ?
+            ORDER BY move_no
+            """,
             (game_id,),
         ).fetchall()
 
@@ -102,7 +198,10 @@ def make_move(game_id: int, move: MoveRequest) -> MoveResponse:
 
         try:
             conn.execute(
-                "INSERT INTO moves(game_id, move_no, player, row_idx, col_idx) VALUES (?, ?, ?, ?, ?)",
+                """
+                INSERT INTO moves(game_id, move_no, player, row_idx, col_idx)
+                VALUES (?, ?, ?, ?, ?)
+                """,
                 (game_id, move_no, player, move.row, move.col),
             )
         except Exception as exc:
@@ -114,7 +213,13 @@ def make_move(game_id: int, move: MoveRequest) -> MoveResponse:
 
         if winner:
             conn.execute(
-                "UPDATE games SET status = 'finished', winner = ?, finished_at = CURRENT_TIMESTAMP WHERE id = ?",
+                """
+                UPDATE games
+                SET status = 'finished',
+                    winner = ?,
+                    finished_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """,
                 (winner, game_id),
             )
 
@@ -127,3 +232,8 @@ def make_move(game_id: int, move: MoveRequest) -> MoveResponse:
         status=status,
         next_player=next_player,
     )
+
+
+def _is_https(request: Request) -> bool:
+    forwarded_proto = request.headers.get("x-forwarded-proto", "")
+    return request.url.scheme == "https" or forwarded_proto.lower() == "https"
