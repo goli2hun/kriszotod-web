@@ -18,8 +18,26 @@ def init_db() -> None:
     with connect() as conn:
         conn.executescript(
             """
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                password_salt TEXT NOT NULL,
+                password_hash TEXT NOT NULL,
+                active INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS sessions (
+                token_hash TEXT PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                created_at INTEGER NOT NULL,
+                expires_at INTEGER NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
             CREATE TABLE IF NOT EXISTS games (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
                 started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 finished_at TEXT,
                 winner INTEGER,
@@ -40,3 +58,10 @@ def init_db() -> None:
             );
             """
         )
+
+        if not _column_exists(conn, "games", "user_id"):
+            conn.execute("ALTER TABLE games ADD COLUMN user_id INTEGER")
+
+
+def _column_exists(conn: sqlite3.Connection, table: str, column: str) -> bool:
+    return any(row["name"] == column for row in conn.execute(f"PRAGMA table_info({table})"))
