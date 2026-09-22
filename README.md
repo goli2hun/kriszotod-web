@@ -110,14 +110,31 @@ A program kétszer bekéri a jelszót. Minimum 8 karakter szükséges.
 - Windows-kompatibilis SQLite kapcsolatlezárás.
 - VPS deployment ellenőrizve.
 
-## Következő vizuális fejlesztési irány
+## v0.7 Visual Pack
 
-A működő játékmenet után a következő kör célja nem teljes redesign, hanem finom, modern látványjavítás:
+A v0.7 a működő játékmenet megtartása mellett modern, visszafogott látványréteget ad a játékhoz.
 
-- GSAP-alapú UI és korong animációk
-- aktív játékos finom fény/glow kiemelése
-- bot „gondolkodik” állapot látványosabb visszajelzése
-- győztes ötösön végigfutó fénycsík
-- rövid, visszafogott particle effekt győzelemkor
-- finom háttérmozgás / parallax
-- opcionálisan PixiJS csak a táblához és effektekhez, ha a CSS/GSAP már kevés
+- GSAP 3.15 core CDN-ről, külön plugin nélkül
+- külön `visual.js` és `visual.css`, hogy a játékmenet és a prezentáció szétváljon
+- finom képernyő- és kártyabelépési animációk
+- animált aktív játékosváltás
+- látványosabb BOT GONDOLKODIK állapot
+- utolsó lépés tartós, finom kiemelése
+- korong lerakásakor rövid fény- és részecskeeffekt
+- a győztes ötös szekvenciális fénykiemelése
+- rövid, visszafogott győzelmi particle burst
+- lassan mozgó háttérfények
+- Krisz / Adri és Krisz / Bot matchup vizuál a játékmód-választón
+- `prefers-reduced-motion` támogatás
+- CSS fallback: ha a GSAP CDN nem érhető el, az alap animációk továbbra is működnek
+- frontend smoke teszt a Visual Pack bekötésére
+
+PixiJS továbbra sincs a projektben; csak akkor kerülne be, ha egy későbbi körben valódi WebGL/shader alapú táblaeffektekre lenne szükség.
+
+## Következő fejlesztési irányok
+
+- eredmény / győzelemszámláló
+- játékstatisztika
+- visszajátszás
+- WebSocket a PvP polling későbbi kiváltására
+- opcionális PixiJS kísérlet, ha a GSAP + CSS vizuális réteg már kevés

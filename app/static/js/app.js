@@ -18,6 +18,17 @@ import {
   unlockAudio
 } from './audio.js';
 import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js';
+import {
+  animateDifficulty,
+  animateModalIn,
+  animatePiecePlacement,
+  animateTurnCard,
+  animateViewIn,
+  animateWinningLine,
+  initVisualEffects,
+  markLastMove,
+  setBotThinkingVisual
+} from './visual.js';
 
 const loginViewEl = document.querySelector('#loginView');
 const modeViewEl = document.querySelector('#modeView');
@@ -43,6 +54,7 @@ const columnLabelsEl = document.querySelector('#columnLabels');
 const rowLabelsEl = document.querySelector('#rowLabels');
 const statusTextEl = document.querySelector('#statusText');
 const statusDotEl = document.querySelector('#statusDot');
+const statusPillEl = document.querySelector('#statusPill');
 const redPlayerCardEl = document.querySelector('#redPlayerCard');
 const bluePlayerCardEl = document.querySelector('#bluePlayerCard');
 const redPlayerNameEl = document.querySelector('#redPlayerName');
@@ -87,6 +99,7 @@ let gameFinished = false;
 let gameOverTimer = null;
 let pollTimer = null;
 let pollBusy = false;
+let lastTurnPlayer = null;
 
 function buildCoordinates() {
   columnLabelsEl.innerHTML = '';
@@ -144,6 +157,8 @@ function updatePlayerCards() {
 function updateStatus() {
   if (currentStatus !== 'active' || !currentPlayer) return;
 
+  setBotThinkingVisual(false, statusPillEl, bluePlayerCardEl);
+
   const isRed = currentPlayer === 1;
   const myTurn = playerNumber === currentPlayer && !locked;
 
@@ -157,6 +172,11 @@ function updateStatus() {
 
   redPlayerCardEl.classList.toggle('active', isRed);
   bluePlayerCardEl.classList.toggle('active', !isRed);
+
+  if (lastTurnPlayer !== currentPlayer) {
+    animateTurnCard(isRed ? redPlayerCardEl : bluePlayerCardEl);
+    lastTurnPlayer = currentPlayer;
+  }
 
   if (gameMode === 'ai') {
     gameHintEl.textContent = myTurn
@@ -180,6 +200,7 @@ function showBotThinking() {
   boardEl.classList.add('turn-blue', 'not-your-turn');
   redPlayerCardEl.classList.remove('active');
   bluePlayerCardEl.classList.add('active');
+  setBotThinkingVisual(true, statusPillEl, bluePlayerCardEl);
   gameHintEl.textContent = 'A bot gondolkodik…';
 }
 
@@ -192,7 +213,8 @@ function renderPiece(cell, player, animate = true) {
 
   if (animate) {
     cell.classList.add('just-placed');
-    window.setTimeout(() => cell.classList.remove('just-placed'), 360);
+    animatePiecePlacement(cell, player);
+    window.setTimeout(() => cell.classList.remove('just-placed'), 700);
   }
 }
 
@@ -205,7 +227,10 @@ function renderMove(move, animate = true) {
 
   board[row][col] = player;
   const cell = boardEl.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-  if (cell) renderPiece(cell, player, animate);
+  if (cell) {
+    renderPiece(cell, player, animate);
+    markLastMove(cell, animate);
+  }
   if (animate) playPlace(player);
 }
 
@@ -233,10 +258,17 @@ function markInvalidCell(cell) {
 }
 
 function highlightWinningLine(line) {
+  const cells = [];
+
   for (const [row, col] of line) {
     const cell = boardEl.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-    cell?.classList.add('winning');
+    if (cell) {
+      cell.classList.add('winning');
+      cells.push(cell);
+    }
   }
+
+  animateWinningLine(cells, boardEl);
 }
 
 function clearGameOverTimer() {
@@ -253,6 +285,7 @@ function showGameResult(winner) {
   boardEl.classList.add('not-your-turn');
   redPlayerCardEl.classList.remove('active');
   bluePlayerCardEl.classList.remove('active');
+  setBotThinkingVisual(false, statusPillEl, bluePlayerCardEl);
   newGameButton.disabled = false;
 
   if (winner) {
@@ -277,7 +310,10 @@ function showGameResult(winner) {
 
   gameHintEl.textContent = 'A parti véget ért. Indíthatsz új játékot.';
   clearGameOverTimer();
-  gameOverTimer = window.setTimeout(() => gameOverEl.classList.remove('hidden'), 780);
+  gameOverTimer = window.setTimeout(() => {
+    gameOverEl.classList.remove('hidden');
+    animateModalIn(gameOverEl);
+  }, 780);
 }
 
 async function applyGameState(state, { initial = false, animateNew = true } = {}) {
@@ -429,6 +465,7 @@ function showWaiting(state) {
   modeViewEl.classList.remove('hidden');
   modeChoicesEl.classList.add('hidden');
   waitingPanelEl.classList.remove('hidden');
+  animateViewIn(modeViewEl);
   startPolling();
 }
 
@@ -467,8 +504,10 @@ async function enterGame(state) {
   currentUsernameEl.textContent = currentUsername || '—';
   locked = false;
   gameFinished = false;
+  lastTurnPlayer = null;
 
   await applyGameState(state, { initial: true, animateNew: false });
+  animateViewIn(gameViewEl);
 
   if (state.mode === 'pvp' && state.status === 'active') startPolling();
 }
@@ -488,7 +527,9 @@ function showMode(username) {
   currentStatus = null;
   playerNumber = null;
   gameFinished = false;
+  lastTurnPlayer = null;
   setModeBusy(false);
+  animateViewIn(modeViewEl);
 }
 
 function showLogin() {
@@ -505,6 +546,7 @@ function showLogin() {
   loginViewEl.classList.remove('hidden');
   passwordInputEl.value = '';
   loginErrorEl.classList.add('hidden');
+  animateViewIn(loginViewEl);
   window.setTimeout(() => usernameInputEl.focus(), 0);
 }
 
@@ -634,7 +676,9 @@ function selectDifficulty(difficulty) {
   selectedDifficulty = ['easy', 'normal', 'hard'].includes(difficulty) ? difficulty : 'normal';
   localStorage.setItem('otodolo-ai-difficulty', selectedDifficulty);
   difficultyButtons.forEach(button => {
-    button.classList.toggle('active', button.dataset.difficulty === selectedDifficulty);
+    const active = button.dataset.difficulty === selectedDifficulty;
+    button.classList.toggle('active', active);
+    if (active) animateDifficulty(button);
   });
 }
 
@@ -689,6 +733,7 @@ function onSoundToggle() {
 
 async function initialize() {
   loadTheme();
+  initVisualEffects();
   updateSoundToggle();
   selectDifficulty(selectedDifficulty);
   buildCoordinates();
