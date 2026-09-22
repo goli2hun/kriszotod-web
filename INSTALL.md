@@ -2,28 +2,28 @@
 
 Cél domain: `kriszotod.duckdns.org`
 
-## 1. Helyi futtatás Windows/Linux/macOS alatt
+## 1. Helyi futtatás Windows alatt
 
 A projekt gyökerében:
 
-```bash
+```powershell
 python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
 
-Windows PowerShell:
+Az első belépési felhasználó létrehozása:
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8020
+python -m app.create_user krisz
 ```
 
-Linux/macOS:
+A parancs kétszer bekéri a jelszót. A jelszó minimum 8 karakter.
 
-```bash
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8020
+Indítás:
+
+```powershell
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8020
 ```
 
 Böngésző:
@@ -32,11 +32,23 @@ Böngésző:
 http://127.0.0.1:8020
 ```
 
-Az adatbázis első induláskor automatikusan létrejön `otodolo.db` néven.
+Sikeres bejelentkezés után a játék azonnal elindul.
 
 ---
 
-## 2. Telepítés Ubuntu 24.04 szerverre
+## 2. Linux/macOS helyi futtatás
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m app.create_user krisz
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8020
+```
+
+---
+
+## 3. Telepítés Ubuntu 24.04 szerverre
 
 Példa célkönyvtár:
 
@@ -45,20 +57,27 @@ sudo mkdir -p /opt/kriszotod
 sudo chown -R $USER:$USER /opt/kriszotod
 ```
 
-Másold a projekt tartalmát ide, majd:
+Projekt letöltése:
 
 ```bash
+git clone https://github.com/goli2hun/kriszotod-web.git /opt/kriszotod
 cd /opt/kriszotod
 python3 -m venv .venv
 source .venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-Teszt:
+Első felhasználó:
 
 ```bash
-uvicorn app.main:app --host 127.0.0.1 --port 8020
+python -m app.create_user krisz
+```
+
+Tesztindítás:
+
+```bash
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8020
 ```
 
 Másik terminálból:
@@ -75,7 +94,7 @@ Elvárt válasz:
 
 ---
 
-## 3. systemd service
+## 4. systemd service
 
 A mellékelt service fájl:
 
@@ -107,7 +126,7 @@ A backend a szerveren csak ezen figyel:
 
 ---
 
-## 4. Nginx
+## 5. Nginx
 
 Telepítés, ha még nincs:
 
@@ -133,7 +152,7 @@ kriszotod.duckdns.org -> VPS IP
 
 ---
 
-## 5. HTTPS – Let's Encrypt
+## 6. HTTPS – Let's Encrypt
 
 Ubuntu alatt:
 
@@ -148,17 +167,11 @@ Ellenőrzés:
 https://kriszotod.duckdns.org
 ```
 
-A Certbot automatikus megújítása jellemzően systemd timerrel működik.
-
-Teszt:
-
-```bash
-systemctl status certbot.timer
-```
+A bejelentkezési cookie HTTPS alatt automatikusan Secure flaget kap.
 
 ---
 
-## 6. Adatbázis
+## 7. Adatbázis
 
 A rendszer sima SQLite-ot használ, ORM nélkül.
 
@@ -171,17 +184,31 @@ Fájl:
 Táblák:
 
 ```text
+users
+sessions
 games
 moves
 ```
 
-A `games` tárolja a játszmák állapotát és győztesét, a `moves` pedig a lépéseket.
+A jelszó nem kerül olvasható formában az adatbázisba. A rendszer PBKDF2-SHA256 hash-t és egyedi saltot használ. A session cookie HttpOnly, a szerveren pedig csak a session token SHA-256 hash-e tárolódik.
 
 ---
 
-## 7. Frissítés később GitHubról
+## 8. Új felhasználó hozzáadása
 
-Ha elkészül a GitHub repo, tipikus frissítés:
+A virtuális környezetből:
+
+```bash
+cd /opt/kriszotod
+source .venv/bin/activate
+python -m app.create_user felhasznalonev
+```
+
+Nincs publikus regisztrációs oldal.
+
+---
+
+## 9. Frissítés GitHubról
 
 ```bash
 cd /opt/kriszotod
@@ -191,11 +218,13 @@ sudo -u www-data .venv/bin/pip install -r requirements.txt
 sudo systemctl start kriszotod
 ```
 
+Ha adatbázis-séma bővítés került a kódba, az alkalmazás induláskor elvégzi a támogatott egyszerű migrációkat.
+
 ---
 
-## 8. Three.js
+## 10. Three.js
 
-A v0.1-ben nincs használva, szándékosan.
+Jelenleg nincs használva, szándékosan.
 
 Később érdemes lehet például:
 
@@ -208,11 +237,9 @@ A játéktáblához és az alap UI-hoz a CSS gyorsabb és egyszerűbb.
 
 ---
 
-## 9. Következő fejlesztési lépések
+## 11. Következő fejlesztési lépések
 
 - valódi játékosportrék
-- hover korong-preview
-- győztes ötös kiemelése
 - hangok
 - statisztikai oldal
 - játék-visszajátszás az SQLite lépésekből
