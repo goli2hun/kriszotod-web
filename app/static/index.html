@@ -9,10 +9,17 @@
   <link rel="stylesheet" href="/static/css/themes.css" />
 </head>
 <body>
-  <button id="themeToggle" class="theme-button theme-floating" type="button" aria-label="Design váltása" title="Design váltása">
-    <span id="themeToggleIcon" class="theme-button-icon" aria-hidden="true">☀</span>
-    <span id="themeToggleText">VILÁGOS</span>
-  </button>
+  <div class="global-controls" aria-label="Megjelenés és hang">
+    <button id="soundToggle" class="theme-button compact-control" type="button" aria-label="Hang kikapcsolása" title="Hang kikapcsolása">
+      <span id="soundToggleIcon" class="theme-button-icon" aria-hidden="true">🔊</span>
+      <span id="soundToggleText">HANG</span>
+    </button>
+
+    <button id="themeToggle" class="theme-button compact-control" type="button" aria-label="Design váltása" title="Design váltása">
+      <span id="themeToggleIcon" class="theme-button-icon" aria-hidden="true">☀</span>
+      <span id="themeToggleText">VILÁGOS</span>
+    </button>
+  </div>
 
   <section id="loginView" class="auth-view">
     <div class="login-card">
@@ -63,7 +70,9 @@
 
     <section class="game-layout">
       <aside id="redPlayerCard" class="player-card player-red active">
-        <div class="avatar avatar-red">P</div>
+        <div class="portrait-frame portrait-red">
+          <img class="player-portrait" src="/static/assets/portraits/player-red.svg" alt="Piros játékos, női karakter" />
+        </div>
         <div class="player-copy">
           <span class="player-label">PIROS</span>
           <small>Játékos 1</small>
@@ -83,7 +92,9 @@
       </section>
 
       <aside id="bluePlayerCard" class="player-card player-blue">
-        <div class="avatar avatar-blue">K</div>
+        <div class="portrait-frame portrait-blue">
+          <img class="player-portrait" src="/static/assets/portraits/player-blue.svg" alt="Kék játékos, férfi karakter" />
+        </div>
         <div class="player-copy">
           <span class="player-label">KÉK</span>
           <small>Játékos 2</small>
@@ -96,7 +107,7 @@
       <button id="logoutButton" class="secondary-button" type="button">KIJELENTKEZÉS</button>
     </section>
 
-    <p class="hint">A jobb felső gombbal egy kattintással válthatsz a Midnight és Ivory design között.</p>
+    <p class="hint">A jobb felső vezérlőkkel válthatsz designt és némíthatod a játékot.</p>
   </main>
 
   <div id="gameOver" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="winnerText">
