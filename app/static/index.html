@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="hu" data-theme="midnight">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ÖTÖDÖLŐ</title>
+  <meta name="description" content="Modern webes Ötödölő játék" />
+  <link rel="stylesheet" href="/static/css/base.css" />
+  <link rel="stylesheet" href="/static/css/themes.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <p class="eyebrow">KRISZOTOD</p>
+        <h1>ÖTÖDÖLŐ</h1>
+        <p class="subtitle">A stratégia játéka</p>
+      </div>
+
+      <button id="themeToggle" class="theme-button" type="button" aria-label="Design váltása" title="Design váltása">
+        <span id="themeToggleIcon" class="theme-button-icon" aria-hidden="true">☀</span>
+        <span id="themeToggleText">VILÁGOS</span>
+      </button>
+    </header>
+
+    <section class="game-layout">
+      <aside class="player-card player-red">
+        <div class="avatar avatar-red">P</div>
+        <div class="player-copy">
+          <span class="player-label">PIROS</span>
+          <small>Játékos 1</small>
+        </div>
+      </aside>
+
+      <section class="board-panel">
+        <div class="coordinates columns" id="columnLabels"></div>
+        <div class="board-row">
+          <div class="coordinates rows" id="rowLabels"></div>
+          <div id="board" class="board turn-red" aria-label="10x10 Ötödölő tábla"></div>
+        </div>
+        <div id="statusPill" class="status-pill">
+          <span id="statusDot" class="status-dot red"></span>
+          <span>Következik: <strong id="statusText">PIROS</strong></span>
+        </div>
+      </section>
+
+      <aside class="player-card player-blue">
+        <div class="avatar avatar-blue">K</div>
+        <div class="player-copy">
+          <span class="player-label">KÉK</span>
+          <small>Játékos 2</small>
+        </div>
+      </aside>
+    </section>
+
+    <section class="actions">
+      <button id="newGameButton" class="primary-button" type="button">↻ ÚJ JÁTÉK</button>
+      <button id="exitButton" class="secondary-button" type="button">KILÉPÉS</button>
+    </section>
+
+    <p class="hint">A jobb felső gombbal egy kattintással válthatsz a Midnight és Ivory design között.</p>
+  </main>
+
+  <div id="gameOver" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="winnerText">
+    <div class="modal-card">
+      <p class="eyebrow">ÖTÖDÖLŐ!</p>
+      <h2 id="winnerText">PIROS NYERT!</h2>
+      <button id="modalNewGameButton" class="primary-button" type="button">ÚJ JÁTÉK</button>
+    </div>
+  </div>
+
+  <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>
