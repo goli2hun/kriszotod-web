@@ -41,7 +41,14 @@ A production dependency-lista szándékosan kicsi marad. A tesztekhez külön:
 
 ```powershell
 python -m pip install -r requirements-dev.txt
-python -m unittest -v
+python -m unittest discover -s tests -v
+```
+
+Elvárt eredmény:
+
+```text
+Ran 8 tests in ...
+OK
 ```
 
 ---
@@ -166,16 +173,39 @@ A v0.6 új játékmezőket ad a `games` táblához: játékosok, játékmód, bo
 
 A jelszó nem kerül olvasható formában az adatbázisba. A rendszer PBKDF2-SHA256 hash-t és egyedi saltot használ. A session cookie HttpOnly, a szerveren csak a session token SHA-256 hash-e tárolódik.
 
+A `db.connect()` context manager minden kérés után commit/rollback mellett explicit módon lezárja a SQLite kapcsolatot; ez Windows tesztkörnyezetben is megszünteti a temp DB zárolását.
+
 ---
 
-## 7. Frissítés GitHubról
+## 7. Frissítés GitHubról – ajánlott production folyamat
 
 ```bash
 cd /opt/kriszotod
+
 sudo systemctl stop kriszotod
-sudo -u www-data git pull
+
+sudo cp otodolo.db otodolo.db.backup-$(date +%Y%m%d-%H%M%S)
+
+sudo -u www-data git pull origin main
 sudo -u www-data .venv/bin/pip install -r requirements.txt
+
 sudo systemctl start kriszotod
+sudo systemctl status kriszotod --no-pager
+
+curl http://127.0.0.1:8030/api/health
+curl -I https://kriszotod.duckdns.org
+```
+
+Elvárt health válasz:
+
+```json
+{"status":"ok"}
+```
+
+Ha az alkalmazás nem indul:
+
+```bash
+journalctl -u kriszotod -n 100 --no-pager
 ```
 
 Az adatbázis-séma támogatott egyszerű migrációit az alkalmazás induláskor elvégzi.
@@ -206,9 +236,24 @@ A bot teljesen helyben fut a FastAPI alkalmazásban; nincs külső AI API vagy t
 
 ---
 
-## 9. Következő fejlesztési lépések
+## 9. v0.6 ellenőrzött deployment
 
-- modern vizuális finomítások és animációk
+2026-09-22-i állapot:
+
+- Windows fejlesztői tesztek: **8/8 OK**
+- SQLite Windows temp-DB zárolási hiba: **javítva**
+- production dependency lista: **változatlan**
+- VPS deployment: **sikeresen végrehajtva**
+- FastAPI/systemd/Nginx felállás: **megtartva**
+- meglévő SQLite adatbázis: **megőrizve és automatikusan migrálva**
+
+---
+
+## 10. Következő fejlesztési lépések
+
+- modern vizuális finomítások és GSAP animációk
+- látványosabb bot-gondolkodás és játékosváltás
+- győzelmi fénycsík / rövid particle effekt
 - statisztikai oldal
 - játék-visszajátszás az SQLite lépésekből
 - opcionálisan WebSocket a polling későbbi kiváltására
