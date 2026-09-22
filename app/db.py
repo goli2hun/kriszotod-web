@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import os
 import sqlite3
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = BASE_DIR / "otodolo.db"
-
+DB_PATH = Path(
+    os.getenv("OTODOLO_DB_PATH", str(BASE_DIR / "otodolo.db"))
+)
 
 def connect() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
