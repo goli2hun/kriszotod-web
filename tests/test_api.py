@@ -96,7 +96,7 @@ class ApiFlowTests(unittest.TestCase):
         page = self.krisz.get('/')
         self.assertEqual(page.status_code, 200)
         self.assertIn('/static/css/visual.css', page.text)
-        self.assertIn('gsap@3.15/dist/gsap.min.js', page.text)
+        self.assertIn('gsap@3.15.0/dist/gsap.min.js', page.text)
         self.assertIn('/static/js/app.js', page.text)
 
         visual_js = self.krisz.get('/static/js/visual.js')
