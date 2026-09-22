@@ -1,0 +1,65 @@
+html[data-theme="midnight"] {
+  color-scheme: dark;
+  --page-bg:
+    radial-gradient(circle at 50% -10%, rgba(37, 83, 139, .28) 0, transparent 34%),
+    linear-gradient(155deg, #07111f 0%, #030914 58%, #02060d 100%);
+  --ambient-opacity: .72;
+  --ambient-a: radial-gradient(circle, rgba(46,118,255,.24), rgba(46,118,255,0) 70%);
+  --ambient-b: radial-gradient(circle, rgba(221,40,70,.13), rgba(221,40,70,0) 70%);
+  --shell-bg: rgba(7, 18, 33, .88);
+  --shell-border: rgba(83, 157, 255, .22);
+  --shell-shadow: 0 30px 90px rgba(0,0,0,.48), inset 0 1px rgba(255,255,255,.025);
+  --text: #f5f8ff;
+  --muted: #91a7c4;
+  --red: #ff4b5c;
+  --blue: #3f91ff;
+  --card-bg: linear-gradient(180deg, rgba(17,33,57,.98), rgba(8,18,33,.98));
+  --card-border: rgba(88, 147, 231, .23);
+  --card-shadow: inset 0 1px rgba(255,255,255,.035), 0 20px 45px rgba(0,0,0,.2);
+  --button-soft: rgba(16, 35, 61, .94);
+  --button-border: rgba(82,142,222,.2);
+  --button-shadow: inset 0 1px rgba(255,255,255,.04), 0 8px 20px rgba(0,0,0,.25);
+  --theme-icon-bg: rgba(255,255,255,.07);
+  --board-frame: linear-gradient(145deg, #102c4a, #081629);
+  --board-shadow: inset 0 0 0 1px rgba(86, 160, 255, .19), 0 24px 50px rgba(0,0,0,.3);
+  --cell-bg: linear-gradient(145deg, #0b1b2e, #091625);
+  --cell-border: #244b70;
+  --cell-hover: #55adff;
+  --cell-hover-bg: #102842;
+  --cell-hover-shadow: 0 0 18px rgba(66,157,255,.15);
+}
+
+html[data-theme="ivory"] {
+  color-scheme: light;
+  --page-bg:
+    radial-gradient(circle at 15% 10%, rgba(255,255,255,.9) 0, rgba(255,255,255,0) 28%),
+    linear-gradient(160deg, #f7f1e8 0%, #e9ddcd 52%, #d9cab6 100%);
+  --ambient-opacity: .68;
+  --ambient-a: radial-gradient(circle, rgba(114,164,92,.20), rgba(114,164,92,0) 70%);
+  --ambient-b: radial-gradient(circle, rgba(194,142,82,.18), rgba(194,142,82,0) 70%);
+  --shell-bg: rgba(255, 251, 244, .91);
+  --shell-border: rgba(104, 76, 48, .16);
+  --shell-shadow: 0 28px 70px rgba(89, 62, 38, .16), inset 0 1px rgba(255,255,255,.9);
+  --text: #2d2119;
+  --muted: #7f6b5a;
+  --red: #dc2d3f;
+  --blue: #176ce5;
+  --card-bg: linear-gradient(180deg, rgba(255,255,255,.92), rgba(246,236,222,.96));
+  --card-border: rgba(121, 86, 52, .16);
+  --card-shadow: inset 0 1px rgba(255,255,255,.85), 0 18px 38px rgba(92, 63, 36, .12);
+  --button-soft: linear-gradient(180deg, #fbf5ec, #f0e5d6);
+  --button-border: rgba(118,82,48,.15);
+  --button-shadow: inset 0 1px #fff, 0 8px 18px rgba(92, 63, 36, .12);
+  --theme-icon-bg: rgba(91,67,45,.07);
+  --board-frame:
+    linear-gradient(145deg, rgba(255,255,255,.25), rgba(110,71,36,.04)),
+    repeating-linear-gradient(90deg, #e5c590 0 18px, #dcb980 18px 36px, #e7c995 36px 54px);
+  --board-shadow: inset 0 0 0 1px rgba(112, 77, 41, .15), 0 22px 42px rgba(111, 77, 44, .18);
+  --cell-bg:
+    linear-gradient(rgba(255,250,240,.58), rgba(255,247,233,.68)),
+    repeating-linear-gradient(90deg, rgba(165,114,61,.045) 0 10px, rgba(255,255,255,.025) 10px 20px);
+  --cell-border: rgba(128, 89, 52, .27);
+  --cell-hover: #50a9c8;
+  --cell-hover-bg: rgba(255,255,255,.84);
+  --cell-hover-shadow: 0 0 0 3px rgba(76,169,202,.08), 0 7px 16px rgba(94,64,36,.08);
+}
