@@ -25,6 +25,7 @@ A v0.1 szándékosan nem használ frameworköt a frontendhez és nem használ Th
 
 Telepítéshez lásd: `INSTALL.md`.
 
+
 ## v0.2 UI frissítés
 
 - Teljes Midnight / Ivory designváltás egyetlen gombbal.
