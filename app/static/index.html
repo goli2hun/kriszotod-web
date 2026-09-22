@@ -9,7 +9,45 @@
   <link rel="stylesheet" href="/static/css/themes.css" />
 </head>
 <body>
-  <main class="app-shell">
+  <button id="themeToggle" class="theme-button theme-floating" type="button" aria-label="Design váltása" title="Design váltása">
+    <span id="themeToggleIcon" class="theme-button-icon" aria-hidden="true">☀</span>
+    <span id="themeToggleText">VILÁGOS</span>
+  </button>
+
+  <section id="loginView" class="auth-view">
+    <div class="login-card">
+      <div class="login-mark" aria-hidden="true">
+        <span class="mini-piece red"></span>
+        <span class="mini-piece blue"></span>
+      </div>
+
+      <p class="eyebrow">KRISZOTOD</p>
+      <h1 class="login-title">ÖTÖDÖLŐ</h1>
+      <p class="login-subtitle">Jelentkezz be a játékhoz</p>
+
+      <form id="loginForm" class="login-form">
+        <label class="form-field">
+          <span>Felhasználónév</span>
+          <input id="usernameInput" name="username" type="text" autocomplete="username" required />
+        </label>
+
+        <label class="form-field">
+          <span>Jelszó</span>
+          <input id="passwordInput" name="password" type="password" autocomplete="current-password" required />
+        </label>
+
+        <p id="loginError" class="login-error hidden" role="alert"></p>
+
+        <button id="loginButton" class="primary-button login-button" type="submit">
+          BELÉPÉS
+        </button>
+      </form>
+
+      <p class="login-footnote">kriszotod.duckdns.org</p>
+    </div>
+  </section>
+
+  <main id="gameView" class="app-shell hidden">
     <header class="topbar">
       <div class="brand-block">
         <p class="eyebrow">KRISZOTOD</p>
@@ -17,10 +55,10 @@
         <p class="subtitle">A stratégia játéka</p>
       </div>
 
-      <button id="themeToggle" class="theme-button" type="button" aria-label="Design váltása" title="Design váltása">
-        <span id="themeToggleIcon" class="theme-button-icon" aria-hidden="true">☀</span>
-        <span id="themeToggleText">VILÁGOS</span>
-      </button>
+      <div class="session-chip">
+        <span class="session-dot"></span>
+        <span id="currentUsername">—</span>
+      </div>
     </header>
 
     <section class="game-layout">
@@ -55,7 +93,7 @@
 
     <section class="actions">
       <button id="newGameButton" class="primary-button" type="button">↻ ÚJ JÁTÉK</button>
-      <button id="exitButton" class="secondary-button" type="button">KILÉPÉS</button>
+      <button id="logoutButton" class="secondary-button" type="button">KIJELENTKEZÉS</button>
     </section>
 
     <p class="hint">A jobb felső gombbal egy kattintással válthatsz a Midnight és Ivory design között.</p>
