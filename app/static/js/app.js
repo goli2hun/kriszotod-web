@@ -1,5 +1,14 @@
-import { createGame, sendMove } from './api.js';
+import { createGame, getSession, login, logout, sendMove } from './api.js';
 import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js';
+
+const loginViewEl = document.querySelector('#loginView');
+const gameViewEl = document.querySelector('#gameView');
+const loginFormEl = document.querySelector('#loginForm');
+const usernameInputEl = document.querySelector('#usernameInput');
+const passwordInputEl = document.querySelector('#passwordInput');
+const loginButtonEl = document.querySelector('#loginButton');
+const loginErrorEl = document.querySelector('#loginError');
+const currentUsernameEl = document.querySelector('#currentUsername');
 
 const boardEl = document.querySelector('#board');
 const columnLabelsEl = document.querySelector('#columnLabels');
@@ -10,7 +19,7 @@ const redPlayerCardEl = document.querySelector('#redPlayerCard');
 const bluePlayerCardEl = document.querySelector('#bluePlayerCard');
 const newGameButton = document.querySelector('#newGameButton');
 const modalNewGameButton = document.querySelector('#modalNewGameButton');
-const exitButton = document.querySelector('#exitButton');
+const logoutButton = document.querySelector('#logoutButton');
 const themeToggle = document.querySelector('#themeToggle');
 const themeToggleIcon = document.querySelector('#themeToggleIcon');
 const themeToggleText = document.querySelector('#themeToggleText');
@@ -126,6 +135,10 @@ async function onCellClick(event) {
       updateStatus();
     }
   } catch (error) {
+    if (error.message === 'Bejelentkezés szükséges.') {
+      showLogin();
+      return;
+    }
     alert(error.message);
   } finally {
     locked = false;
@@ -150,17 +163,69 @@ async function startNewGame() {
     buildBoard();
     updateStatus();
   } catch (error) {
+    if (error.message === 'Bejelentkezés szükséges.') {
+      showLogin();
+      return;
+    }
     alert(error.message);
   } finally {
     locked = false;
   }
 }
 
+function showLogin() {
+  gameId = null;
+  gameFinished = false;
+  gameOverEl.classList.add('hidden');
+  gameViewEl.classList.add('hidden');
+  loginViewEl.classList.remove('hidden');
+  passwordInputEl.value = '';
+  loginErrorEl.classList.add('hidden');
+  window.setTimeout(() => usernameInputEl.focus(), 0);
+}
+
+async function showGame(username) {
+  currentUsernameEl.textContent = username;
+  loginViewEl.classList.add('hidden');
+  gameViewEl.classList.remove('hidden');
+  await startNewGame();
+}
+
+async function onLoginSubmit(event) {
+  event.preventDefault();
+
+  loginErrorEl.classList.add('hidden');
+  loginButtonEl.disabled = true;
+  loginButtonEl.textContent = 'BELÉPÉS...';
+
+  try {
+    const result = await login(usernameInputEl.value, passwordInputEl.value);
+    await showGame(result.username);
+  } catch (error) {
+    loginErrorEl.textContent = error.message;
+    loginErrorEl.classList.remove('hidden');
+    passwordInputEl.select();
+  } finally {
+    loginButtonEl.disabled = false;
+    loginButtonEl.textContent = 'BELÉPÉS';
+  }
+}
+
+async function onLogout() {
+  try {
+    await logout();
+  } catch {
+    // Kijelentkezésnél akkor is visszatérünk a login képernyőre,
+    // ha a session a szerveren már lejárt.
+  }
+
+  showLogin();
+}
+
 function applyTheme(theme) {
   const isIvory = theme === 'ivory';
   document.documentElement.dataset.theme = isIvory ? 'ivory' : 'midnight';
 
-  // A gomb mindig azt mutatja, hogy mire fog átváltani.
   themeToggleIcon.textContent = isIvory ? '☾' : '☀';
   themeToggleText.textContent = isIvory ? 'SÖTÉT' : 'VILÁGOS';
   themeToggle.setAttribute('aria-label', isIvory ? 'Váltás sötét designra' : 'Váltás világos designra');
@@ -180,13 +245,27 @@ function loadTheme() {
   applyTheme(saved === 'ivory' ? 'ivory' : 'midnight');
 }
 
+async function initialize() {
+  loadTheme();
+  buildCoordinates();
+
+  try {
+    const session = await getSession();
+
+    if (session.authenticated) {
+      await showGame(session.username);
+    } else {
+      showLogin();
+    }
+  } catch {
+    showLogin();
+  }
+}
+
+loginFormEl.addEventListener('submit', onLoginSubmit);
 newGameButton.addEventListener('click', startNewGame);
 modalNewGameButton.addEventListener('click', startNewGame);
+logoutButton.addEventListener('click', onLogout);
 themeToggle.addEventListener('click', toggleTheme);
-exitButton.addEventListener('click', () => {
-  window.location.href = 'about:blank';
-});
 
-loadTheme();
-buildCoordinates();
-startNewGame();
+initialize();
