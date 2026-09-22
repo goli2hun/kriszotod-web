@@ -20,7 +20,7 @@ python -m app.create_user krisz
 
 A parancs kétszer bekéri a jelszót. A jelszó minimum 8 karakter.
 
-Indítás:
+Indítás helyben:
 
 ```powershell
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8020
@@ -50,6 +50,9 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8020
 
 ## 3. Telepítés Ubuntu 24.04 szerverre
 
+A szerveren az Ötödölő dedikált belső portja: `8030`.
+A `8020` portot a `kriszgame` használja.
+
 Példa célkönyvtár:
 
 ```bash
@@ -77,13 +80,13 @@ python -m app.create_user krisz
 Tesztindítás:
 
 ```bash
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8020
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8030
 ```
 
 Másik terminálból:
 
 ```bash
-curl http://127.0.0.1:8020/api/health
+curl http://127.0.0.1:8030/api/health
 ```
 
 Elvárt válasz:
@@ -121,7 +124,7 @@ journalctl -u kriszotod -f
 A backend a szerveren csak ezen figyel:
 
 ```text
-127.0.0.1:8020
+127.0.0.1:8030
 ```
 
 ---
