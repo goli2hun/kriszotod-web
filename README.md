@@ -12,6 +12,21 @@ Modern, böngészős öt-amőba játék FastAPI + SQLite backenddel és vanilla 
 
 A frontend szándékosan nem használ frameworköt. A játéklogika és az AI is helyben fut; nincs LLM, külső AI API vagy nagy új dependency.
 
+## Aktuális állapot
+
+A **v0.6** verzió 2026-09-22-én elkészült, helyi Windows környezetben automata tesztekkel ellenőrzött, majd VPS-re is telepített állapotba került.
+
+Ellenőrzött teszteredmény:
+
+```text
+Ran 8 tests in 1.382s
+OK
+```
+
+A tesztek lefedik az AI alapviselkedését, az azonnali nyerés/blokkolás felismerését, az üres mező választását, a PvP matchmakinget, a soron kívüli lépés tiltását, a bot automatikus válaszlépését és a várakozó parti megszakítását.
+
+A Windows alatt jelentkező SQLite temp-adatbázis zárolási hibát a központi adatbázis-context manager javítása oldotta meg; a kapcsolat minden használat után garantáltan bezáródik.
+
 ## Funkciók
 
 - 10×10 tábla
@@ -92,3 +107,17 @@ A program kétszer bekéri a jelszót. Minimum 8 karakter szükséges.
 - Az AI nem használ külső szolgáltatást és nem növeli a production dependency-k számát.
 - Folyó parti visszaállítása oldalfrissítés után.
 - Automata tesztek az AI-ra és a multiplayer API-folyamatra.
+- Windows-kompatibilis SQLite kapcsolatlezárás.
+- VPS deployment ellenőrizve.
+
+## Következő vizuális fejlesztési irány
+
+A működő játékmenet után a következő kör célja nem teljes redesign, hanem finom, modern látványjavítás:
+
+- GSAP-alapú UI és korong animációk
+- aktív játékos finom fény/glow kiemelése
+- bot „gondolkodik” állapot látványosabb visszajelzése
+- győztes ötösön végigfutó fénycsík
+- rövid, visszafogott particle effekt győzelemkor
+- finom háttérmozgás / parallax
+- opcionálisan PixiJS csak a táblához és effektekhez, ha a CSS/GSAP már kevés
