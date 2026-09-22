@@ -6,7 +6,8 @@
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
 h1, h2, p { margin: 0; }
-button { font: inherit; }
+button, input { font: inherit; }
+.hidden { display: none !important; }
 
 body {
   margin: 0;
@@ -57,6 +58,128 @@ body::after {
   box-shadow: var(--shell-shadow);
   backdrop-filter: blur(20px);
   transition: background .35s ease, border-color .35s ease, box-shadow .35s ease;
+}
+
+.theme-floating {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+}
+
+.auth-view {
+  width: min(460px, calc(100vw - 32px));
+}
+
+.login-card {
+  width: 100%;
+  padding: 38px;
+  border: 1px solid var(--shell-border);
+  border-radius: 30px;
+  background: var(--shell-bg);
+  box-shadow: var(--shell-shadow);
+  backdrop-filter: blur(20px);
+  text-align: center;
+  animation: modalPop .32s cubic-bezier(.2,.9,.25,1.1);
+}
+
+.login-mark {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 22px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  place-items: center;
+  padding: 12px;
+  border-radius: 26px;
+  border: 1px solid var(--button-border);
+  background: var(--button-soft);
+  box-shadow: var(--button-shadow);
+}
+
+.mini-piece {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  box-shadow: inset 0 2px 5px rgba(255,255,255,.42), 0 6px 14px rgba(0,0,0,.2);
+}
+
+.mini-piece.red { background: radial-gradient(circle at 35% 28%, #ffb0b0 0, #ff353f 33%, #b60e25 78%); }
+.mini-piece.blue { background: radial-gradient(circle at 35% 28%, #b5deff 0, #247dff 33%, #1537a8 78%); }
+
+.login-title {
+  font-size: clamp(2.6rem, 10vw, 4.3rem);
+}
+
+.login-subtitle {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: .95rem;
+}
+
+.login-form {
+  margin-top: 30px;
+  display: grid;
+  gap: 17px;
+  text-align: left;
+}
+
+.form-field {
+  display: grid;
+  gap: 8px;
+}
+
+.form-field span {
+  color: var(--muted);
+  font-size: .76rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.form-field input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 15px;
+  border: 1px solid var(--button-border);
+  border-radius: 14px;
+  outline: none;
+  background: var(--button-soft);
+  color: var(--text);
+  box-shadow: inset 0 1px rgba(255,255,255,.025);
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.form-field input:focus {
+  border-color: var(--cell-hover);
+  box-shadow: 0 0 0 4px rgba(70, 151, 255, .11);
+}
+
+.login-button {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.login-button:disabled {
+  opacity: .65;
+  cursor: wait;
+  transform: none;
+}
+
+.login-error {
+  padding: 10px 12px;
+  border: 1px solid rgba(255,75,92,.28);
+  border-radius: 12px;
+  background: rgba(255,75,92,.08);
+  color: var(--red);
+  font-size: .86rem;
+}
+
+.login-footnote {
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: .72rem;
+  letter-spacing: .08em;
 }
 
 .topbar {
@@ -134,6 +257,28 @@ h1 {
   background: var(--theme-icon-bg);
   font-size: .95rem;
   line-height: 1;
+}
+
+.session-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 13px;
+  border: 1px solid var(--button-border);
+  border-radius: 999px;
+  background: var(--button-soft);
+  box-shadow: var(--button-shadow);
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 800;
+}
+
+.session-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #42c77a;
+  box-shadow: 0 0 10px rgba(66,199,122,.45);
 }
 
 .game-layout {
@@ -395,8 +540,6 @@ h1 {
   animation: modalFade .2s ease-out;
 }
 
-.modal-backdrop.hidden { display: none; }
-
 .modal-card {
   width: min(440px, 92vw);
   padding: 34px;
@@ -451,6 +594,8 @@ h1 {
   .topbar { align-items: flex-start; }
   .theme-button { min-width: 46px; width: 46px; padding: 0; }
   #themeToggleText { display: none; }
+  .theme-floating { top: 12px; right: 12px; }
+  .login-card { padding: 30px 22px; border-radius: 24px; }
   .board { gap: 3px; padding: 7px; border-radius: 16px; }
   .cell { border-radius: 7px; }
   .coordinates.columns { margin-left: 31px; font-size: .7rem; }
