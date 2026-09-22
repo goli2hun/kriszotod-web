@@ -1,6 +1,6 @@
 # ÖTÖDÖLŐ WEB
 
-Egyszerű, modern webes öt-amőba játék két váltható designnal.
+Modern, böngészős öt-amőba játék FastAPI + SQLite backenddel és vanilla HTML/CSS/JavaScript frontenddel.
 
 ## Stack
 
@@ -10,80 +10,85 @@ Egyszerű, modern webes öt-amőba játék két váltható designnal.
 - Nginx reverse proxy
 - systemd
 
-A frontend szándékosan nem használ frameworköt és jelenleg Three.js-t sem. A Three.js később opcionálisan bevethető látványeffektekhez, de a jelenlegi UI-hoz felesleges lenne.
+A frontend szándékosan nem használ frameworköt. A játéklogika és az AI is helyben fut; nincs LLM, külső AI API vagy nagy új dependency.
 
 ## Funkciók
 
 - 10×10 tábla
-- helyi 2 játékos
-- piros / kék felváltva
 - 5 egymás mellett = győzelem
-- új játék
+- bejelentkezés SQLite-alapú felhasználókkal
+- HttpOnly session cookie
+- játékmód-választó belépés után
+- online kétjátékos mód: Krisz és Adri külön böngészőből / eszközről játszhat
+- mindkét felhasználó indíthat kétjátékos partit; az első vár, a második automatikusan csatlakozik
+- szerveroldali kör- és lépésellenőrzés
+- aktív vagy várakozó parti visszaállítása oldalfrissítés után
+- AI ellenfél három nehézséggel: Könnyű / Normál / Nehéz
+- a bot felismeri az azonnali nyerést és a veszélyes ellenfél-lépéseket
+- a Normál bot erős heurisztikát használ, de nem verhetetlen
+- a Nehéz bot az ellenfél legerősebb következő válaszát is figyelembe veszi
+- a Könnyű bot több véletlent és szándékos pontatlanságot kap
 - játékmenet mentése SQLite-ba
-- két design: Midnight és Ivory
-- designváltás egy gombbal, localStorage megjegyzéssel
+- Midnight / Ivory design
 - hover korong-preview
-- aktív játékos vizuális kiemelése
-- győztes sor animált kiemelése
-- animált győzelmi modal
-- SQLite-alapú felhasználók és sessionök
-- HttpOnly cookie-s bejelentkezés
-- kijelentkezés után visszatérés a login képernyőre
-- a játék API csak bejelentkezve használható
-- egyedi piros női és kék férfi játékosportré
-- finomított korong-lerakási animáció és hibás mező visszajelzés
-- procedurális Web Audio hangok külső hangfájl nélkül
-- hang be/ki kapcsoló localStorage megjegyzéssel
+- játékosportrék
+- korong-lerakási és győzelmi animációk
+- procedurális Web Audio hangok
+- hang be/ki kapcsoló
 
 Telepítéshez lásd: `INSTALL.md`.
 
-## Felhasználó létrehozása
+## Felhasználók létrehozása
 
-A webes felületen nincs nyitott regisztráció. Felhasználót parancssorból lehet létrehozni:
+A webes felületen nincs nyitott regisztráció. Krisz és Adri külön felhasználóként jelentkezik be:
 
 ```bash
 python -m app.create_user krisz
+python -m app.create_user adri
 ```
 
 A program kétszer bekéri a jelszót. Minimum 8 karakter szükséges.
 
 ## v0.2 UI frissítés
 
-- Teljes Midnight / Ivory designváltás egyetlen gombbal.
+- Midnight / Ivory designváltás.
 - A kiválasztott design localStorage-ban megmarad.
-- A világos Ivory téma melegebb, fa-hatású táblát kapott.
-- Hover korong-preview az aktuális játékos színével.
-- Kompaktabb fejléc és finomított reszponzív elrendezés.
+- Hover korong-preview.
+- Reszponzív elrendezés.
 
 ## v0.3 győzelmi visszajelzés
 
-- Az aktuális játékos kártyája automatikusan kiemelődik.
-- Győzelemkor a teljes összefüggő nyertes vonal arany fényt kap.
-- A nyertes korongok pulzáló animációt kapnak.
-- A győzelmi modal rövid késleltetéssel jelenik meg, így előbb látható a nyertes sor.
-- A modal megjelenése animált.
+- Aktuális játékos kiemelése.
+- Nyertes vonal arany kiemelése.
+- Pulzáló nyertes korongok.
+- Animált győzelmi modal.
 - Játék vége után további lépés nem küldhető.
 
 ## v0.4 login
 
-- Modern, külön login képernyő.
-- Felhasználók SQLite-ban.
-- Jelszavak PBKDF2-SHA256 hash formában, egyedi salt-tal tárolódnak.
+- Külön login képernyő.
+- PBKDF2-SHA256 jelszóhash egyedi salt-tal.
 - Session token HttpOnly cookie-ban.
 - A session token hash-elve kerül az adatbázisba.
 - 30 napos session.
-- Sikeres belépés után azonnal indul a játék.
-- Nincs külön Adri/Krisz játékosválasztó.
-- A játszmák a bejelentkezett felhasználóhoz kapcsolódnak.
 
 ## v0.5 presentation pack
 
-- A P/K monogramok helyett saját SVG játékosportrék jelennek meg.
-- Az aktív játékos portréja és kártyája erősebben kiemelődik.
-- A korong lerakása puhább, rugózó animációt kapott.
-- Foglalt mezőre kattintáskor vizuális és hangos hibajelzés jelenik meg.
-- Külön hang van a piros és kék korong lerakásához.
-- Rövid győzelmi fanfár került a játékba.
-- A UI gombok finom kattintási hangot kapnak.
-- A hang a jobb felső gombbal némítható, az állapot megmarad újratöltés után.
-- A hangok Web Audio API-val készülnek, ezért nincs külön audio asset vagy licencfüggőség.
+- Saját SVG játékosportrék.
+- Finomított koronganimációk.
+- Hibás mező visszajelzés.
+- Procedurális játékhangok és győzelmi fanfár.
+- Hangkapcsoló localStorage megjegyzéssel.
+
+## v0.6 AI + kétjátékos mód
+
+- Belépés után játékmód-választó.
+- Krisz és Adri valódi, külön sessionös online játékosként csatlakozik ugyanabba a partiba.
+- Az elsőként kétjátékos módot választó fél várólistára kerül; a második automatikusan becsatlakozik.
+- Mindkét fél kezdeményezheti a partit.
+- 850 ms-os kliensoldali állapotfrissítés a másik játékos lépéseihez.
+- Szerveroldali soron-kívüli lépésvédelem.
+- AI ellenfél: Könnyű / Normál / Nehéz.
+- Az AI nem használ külső szolgáltatást és nem növeli a production dependency-k számát.
+- Folyó parti visszaállítása oldalfrissítés után.
+- Automata tesztek az AI-ra és a multiplayer API-folyamatra.

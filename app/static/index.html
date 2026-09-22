@@ -7,6 +7,7 @@
   <meta name="description" content="Modern webes Ötödölő játék" />
   <link rel="stylesheet" href="/static/css/base.css" />
   <link rel="stylesheet" href="/static/css/themes.css" />
+  <link rel="stylesheet" href="/static/css/modes.css" />
 </head>
 <body>
   <div class="global-controls" aria-label="Megjelenés és hang">
@@ -45,12 +46,55 @@
 
         <p id="loginError" class="login-error hidden" role="alert"></p>
 
-        <button id="loginButton" class="primary-button login-button" type="submit">
-          BELÉPÉS
-        </button>
+        <button id="loginButton" class="primary-button login-button" type="submit">BELÉPÉS</button>
       </form>
 
       <p class="login-footnote">kriszotod.duckdns.org</p>
+    </div>
+  </section>
+
+  <section id="modeView" class="auth-view mode-view hidden">
+    <div class="login-card mode-card">
+      <p class="eyebrow">JÁTÉKMÓD</p>
+      <h2 class="mode-title">Kivel játszol?</h2>
+      <p class="login-subtitle">Belépve: <strong id="modeUsername">—</strong></p>
+
+      <div id="modeChoices" class="mode-choices">
+        <button id="pvpButton" class="mode-choice" type="button">
+          <span class="mode-icon" aria-hidden="true">👥</span>
+          <span class="mode-choice-copy">
+            <strong>KÉT JÁTÉKOS</strong>
+            <small>Adri és Krisz egymás ellen</small>
+          </span>
+        </button>
+
+        <div class="mode-choice bot-choice">
+          <div class="bot-choice-head">
+            <span class="mode-icon" aria-hidden="true">🤖</span>
+            <span class="mode-choice-copy">
+              <strong>BOT ELLEN</strong>
+              <small>Válassz nehézséget</small>
+            </span>
+          </div>
+
+          <div class="difficulty-options" role="group" aria-label="Bot nehézsége">
+            <button class="difficulty-button" type="button" data-difficulty="easy">KÖNNYŰ</button>
+            <button class="difficulty-button active" type="button" data-difficulty="normal">NORMÁL</button>
+            <button class="difficulty-button" type="button" data-difficulty="hard">NEHÉZ</button>
+          </div>
+
+          <button id="aiButton" class="primary-button ai-start-button" type="button">JÁTÉK A BOTTAL</button>
+        </div>
+      </div>
+
+      <div id="waitingPanel" class="waiting-panel hidden" aria-live="polite">
+        <span class="waiting-spinner" aria-hidden="true"></span>
+        <strong>Várakozás a másik játékosra…</strong>
+        <small>Amint Adri vagy Krisz belép és a kétjátékos módot választja, indul a parti.</small>
+        <button id="cancelWaitingButton" class="secondary-button" type="button">MÉGSEM</button>
+      </div>
+
+      <button id="modeLogoutButton" class="text-button" type="button">Kijelentkezés</button>
     </div>
   </section>
 
@@ -62,20 +106,23 @@
         <p class="subtitle">A stratégia játéka</p>
       </div>
 
-      <div class="session-chip">
-        <span class="session-dot"></span>
-        <span id="currentUsername">—</span>
+      <div class="session-stack">
+        <div class="session-chip">
+          <span class="session-dot"></span>
+          <span id="currentUsername">—</span>
+        </div>
+        <span id="gameModeText" class="game-mode-text">—</span>
       </div>
     </header>
 
     <section class="game-layout">
       <aside id="redPlayerCard" class="player-card player-red active">
         <div class="portrait-frame portrait-red">
-          <img class="player-portrait" src="/static/assets/portraits/player-red.svg" alt="Piros játékos, női karakter" />
+          <img class="player-portrait" src="/static/assets/portraits/player-red.svg" alt="Piros játékos" />
         </div>
         <div class="player-copy">
-          <span class="player-label">PIROS</span>
-          <small>Játékos 1</small>
+          <span id="redPlayerName" class="player-label">PIROS</span>
+          <small id="redPlayerRole">Játékos 1</small>
         </div>
       </aside>
 
@@ -93,11 +140,11 @@
 
       <aside id="bluePlayerCard" class="player-card player-blue">
         <div class="portrait-frame portrait-blue">
-          <img class="player-portrait" src="/static/assets/portraits/player-blue.svg" alt="Kék játékos, férfi karakter" />
+          <img class="player-portrait" src="/static/assets/portraits/player-blue.svg" alt="Kék játékos" />
         </div>
         <div class="player-copy">
-          <span class="player-label">KÉK</span>
-          <small>Játékos 2</small>
+          <span id="bluePlayerName" class="player-label">KÉK</span>
+          <small id="bluePlayerRole">Játékos 2</small>
         </div>
       </aside>
     </section>
@@ -107,7 +154,7 @@
       <button id="logoutButton" class="secondary-button" type="button">KIJELENTKEZÉS</button>
     </section>
 
-    <p class="hint">A jobb felső vezérlőkkel válthatsz designt és némíthatod a játékot.</p>
+    <p id="gameHint" class="hint">A jobb felső vezérlőkkel válthatsz designt és némíthatod a játékot.</p>
   </main>
 
   <div id="gameOver" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="winnerText">

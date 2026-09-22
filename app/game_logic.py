@@ -11,6 +11,10 @@ def is_winning_move(board: list[list[int]], row: int, col: int, player: int) -> 
     )
 
 
+def is_board_full(board: list[list[int]]) -> bool:
+    return all(cell != 0 for row in board for cell in row)
+
+
 def _count_line(
     board: list[list[int]], row: int, col: int, player: int, dr: int, dc: int
 ) -> int:

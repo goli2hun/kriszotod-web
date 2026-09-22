@@ -2,56 +2,57 @@ async function readJson(response) {
   return response.json().catch(() => ({}));
 }
 
+async function requestJson(url, options = {}, fallbackMessage = 'A kérés nem sikerült.') {
+  const response = await fetch(url, options);
+  const data = await readJson(response);
+
+  if (!response.ok) {
+    throw new Error(data.detail || fallbackMessage);
+  }
+
+  return data;
+}
+
 export async function getSession() {
-  const response = await fetch('/api/auth/me');
-  if (!response.ok) throw new Error('Nem sikerült ellenőrizni a bejelentkezést.');
-  return response.json();
+  return requestJson('/api/auth/me', {}, 'Nem sikerült ellenőrizni a bejelentkezést.');
 }
 
 export async function login(username, password) {
-  const response = await fetch('/api/auth/login', {
+  return requestJson('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
-  });
-
-  const data = await readJson(response);
-  if (!response.ok) {
-    throw new Error(data.detail || 'A bejelentkezés nem sikerült.');
-  }
-
-  return data;
+  }, 'A bejelentkezés nem sikerült.');
 }
 
 export async function logout() {
-  const response = await fetch('/api/auth/logout', { method: 'POST' });
-  if (!response.ok) throw new Error('A kijelentkezés nem sikerült.');
-  return response.json();
+  return requestJson('/api/auth/logout', { method: 'POST' }, 'A kijelentkezés nem sikerült.');
 }
 
-export async function createGame() {
-  const response = await fetch('/api/games', { method: 'POST' });
-  const data = await readJson(response);
+export async function createGame(mode, difficulty = 'normal') {
+  return requestJson('/api/games', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode, difficulty })
+  }, 'Nem sikerült új játékot indítani.');
+}
 
-  if (!response.ok) {
-    throw new Error(data.detail || 'Nem sikerült új játékot indítani.');
-  }
+export async function getCurrentGame() {
+  return requestJson('/api/games/current', {}, 'Nem sikerült lekérni az aktív játékot.');
+}
 
-  return data;
+export async function getGame(gameId) {
+  return requestJson(`/api/games/${gameId}`, {}, 'Nem sikerült frissíteni a játékot.');
+}
+
+export async function cancelGame(gameId) {
+  return requestJson(`/api/games/${gameId}`, { method: 'DELETE' }, 'Nem sikerült megszakítani a várakozást.');
 }
 
 export async function sendMove(gameId, row, col) {
-  const response = await fetch(`/api/games/${gameId}/moves`, {
+  return requestJson(`/api/games/${gameId}/moves`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ row, col })
-  });
-
-  const data = await readJson(response);
-
-  if (!response.ok) {
-    throw new Error(data.detail || 'A lépés nem sikerült.');
-  }
-
-  return data;
+  }, 'A lépés nem sikerült.');
 }

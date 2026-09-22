@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from .ai import choose_ai_move
 from .auth import (
     COOKIE_NAME,
     SESSION_MAX_AGE,
@@ -18,12 +19,12 @@ from .auth import (
     verify_password,
 )
 from .db import connect, init_db
-from .game_logic import BOARD_SIZE, is_winning_move
+from .game_logic import BOARD_SIZE, is_board_full, is_winning_move
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 
-app = FastAPI(title="Krisz Ötödölő", version="0.4.0")
+app = FastAPI(title="Krisz Ötödölő", version="0.6.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -32,19 +33,14 @@ class LoginRequest(BaseModel):
     password: str = Field(min_length=1, max_length=200)
 
 
+class GameCreateRequest(BaseModel):
+    mode: Literal["pvp", "ai"]
+    difficulty: Literal["easy", "normal", "hard"] = "normal"
+
+
 class MoveRequest(BaseModel):
     row: int = Field(ge=0, lt=BOARD_SIZE)
     col: int = Field(ge=0, lt=BOARD_SIZE)
-
-
-class MoveResponse(BaseModel):
-    game_id: int
-    player: int
-    row: int
-    col: int
-    winner: int | None
-    status: Literal["active", "finished"]
-    next_player: int | None
 
 
 @app.on_event("startup")
@@ -115,123 +111,328 @@ def auth_logout(request: Request, response: Response) -> dict[str, str]:
 
 
 @app.post("/api/games")
-def create_game(request: Request) -> dict[str, int | str]:
+def create_game(payload: GameCreateRequest, request: Request) -> dict:
     user = require_user(request)
+    user_id = int(user["id"])
 
     with connect() as conn:
-        cursor = conn.execute(
-            "INSERT INTO games(user_id, status) VALUES (?, 'active')",
-            (user["id"],),
-        )
-        game_id = int(cursor.lastrowid)
+        if payload.mode == "ai":
+            cursor = conn.execute(
+                """
+                INSERT INTO games(
+                    user_id, player1_user_id, player2_user_id,
+                    mode, difficulty, status, next_player
+                )
+                VALUES (?, ?, NULL, 'ai', ?, 'active', 1)
+                """,
+                (user_id, user_id, payload.difficulty),
+            )
+            return _game_state(conn, int(cursor.lastrowid), user_id)
 
-    return {"game_id": game_id, "status": "active", "next_player": 1}
+        conn.execute("BEGIN IMMEDIATE")
+        conn.execute(
+            """
+            DELETE FROM games
+            WHERE mode = 'pvp'
+              AND status = 'waiting'
+              AND player1_user_id = ?
+            """,
+            (user_id,),
+        )
+
+        waiting = conn.execute(
+            """
+            SELECT id
+            FROM games
+            WHERE mode = 'pvp'
+              AND status = 'waiting'
+              AND player2_user_id IS NULL
+              AND player1_user_id <> ?
+            ORDER BY id
+            LIMIT 1
+            """,
+            (user_id,),
+        ).fetchone()
+
+        if waiting is not None:
+            game_id = int(waiting["id"])
+            conn.execute(
+                """
+                UPDATE games
+                SET player2_user_id = ?, status = 'active', next_player = 1
+                WHERE id = ?
+                  AND status = 'waiting'
+                  AND player2_user_id IS NULL
+                """,
+                (user_id, game_id),
+            )
+        else:
+            cursor = conn.execute(
+                """
+                INSERT INTO games(
+                    user_id, player1_user_id, player2_user_id,
+                    mode, difficulty, status, next_player
+                )
+                VALUES (?, ?, NULL, 'pvp', NULL, 'waiting', NULL)
+                """,
+                (user_id, user_id),
+            )
+            game_id = int(cursor.lastrowid)
+
+        return _game_state(conn, game_id, user_id)
+
+
+@app.get("/api/games/current")
+def get_current_game(request: Request) -> dict:
+    user = require_user(request)
+    user_id = int(user["id"])
+
+    with connect() as conn:
+        game = conn.execute(
+            """
+            SELECT id
+            FROM games
+            WHERE status IN ('waiting', 'active')
+              AND mode IN ('pvp', 'ai')
+              AND (player1_user_id = ? OR player2_user_id = ?)
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (user_id, user_id),
+        ).fetchone()
+
+        if game is None:
+            return {"game": None}
+
+        return {"game": _game_state(conn, int(game["id"]), user_id)}
 
 
 @app.get("/api/games/{game_id}")
 def get_game(game_id: int, request: Request) -> dict:
     user = require_user(request)
+    user_id = int(user["id"])
 
     with connect() as conn:
-        game = conn.execute(
-            "SELECT * FROM games WHERE id = ? AND user_id = ?",
-            (game_id, user["id"]),
-        ).fetchone()
-
-        if game is None:
-            raise HTTPException(status_code=404, detail="Game not found")
-
-        moves = conn.execute(
-            """
-            SELECT move_no, player, row_idx, col_idx
-            FROM moves
-            WHERE game_id = ?
-            ORDER BY move_no
-            """,
-            (game_id,),
-        ).fetchall()
-
-    return {
-        "game_id": game_id,
-        "status": game["status"],
-        "winner": game["winner"],
-        "moves": [dict(m) for m in moves],
-    }
+        return _game_state(conn, game_id, user_id)
 
 
-@app.post("/api/games/{game_id}/moves", response_model=MoveResponse)
-def make_move(game_id: int, move: MoveRequest, request: Request) -> MoveResponse:
+@app.delete("/api/games/{game_id}")
+def cancel_waiting_game(game_id: int, request: Request) -> dict[str, str]:
     user = require_user(request)
+    user_id = int(user["id"])
 
     with connect() as conn:
         game = conn.execute(
-            "SELECT * FROM games WHERE id = ? AND user_id = ?",
-            (game_id, user["id"]),
+            "SELECT * FROM games WHERE id = ?",
+            (game_id,),
         ).fetchone()
 
-        if game is None:
+        if game is None or game["player1_user_id"] != user_id:
             raise HTTPException(status_code=404, detail="Game not found")
+
+        if game["status"] != "waiting":
+            raise HTTPException(
+                status_code=409,
+                detail="A másik játékos már csatlakozott a partihoz.",
+            )
+
+        conn.execute("DELETE FROM games WHERE id = ?", (game_id,))
+
+    return {"status": "cancelled"}
+
+
+@app.post("/api/games/{game_id}/moves")
+def make_move(game_id: int, move: MoveRequest, request: Request) -> dict:
+    user = require_user(request)
+    user_id = int(user["id"])
+
+    with connect() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        game = _get_game_row_for_user(conn, game_id, user_id)
 
         if game["status"] != "active":
-            raise HTTPException(status_code=409, detail="Game already finished")
+            raise HTTPException(status_code=409, detail="A játék még nem aktív vagy már véget ért.")
 
-        moves = conn.execute(
-            """
-            SELECT move_no, player, row_idx, col_idx
-            FROM moves
-            WHERE game_id = ?
-            ORDER BY move_no
-            """,
-            (game_id,),
-        ).fetchall()
+        moves = _get_moves(conn, game_id)
+        board = _build_board(moves)
+        next_player = int(game["next_player"] or (1 if len(moves) % 2 == 0 else 2))
+        player_number = _player_number(game, user_id)
 
-        board = [[0 for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
-        for saved in moves:
-            board[saved["row_idx"]][saved["col_idx"]] = saved["player"]
+        if game["mode"] == "ai":
+            if player_number != 1 or next_player != 1:
+                raise HTTPException(status_code=409, detail="Most a bot következik.")
+        elif player_number != next_player:
+            raise HTTPException(status_code=409, detail="Most a másik játékos következik.")
 
         if board[move.row][move.col] != 0:
             raise HTTPException(status_code=409, detail="Cell already occupied")
 
-        player = 1 if len(moves) % 2 == 0 else 2
-        move_no = len(moves) + 1
-        board[move.row][move.col] = player
-
-        try:
-            conn.execute(
-                """
-                INSERT INTO moves(game_id, move_no, player, row_idx, col_idx)
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (game_id, move_no, player, move.row, move.col),
-            )
-        except Exception as exc:
-            raise HTTPException(status_code=409, detail="Move could not be saved") from exc
-
-        winner = player if is_winning_move(board, move.row, move.col, player) else None
-        status: Literal["active", "finished"] = "finished" if winner else "active"
-        next_player = None if winner else (2 if player == 1 else 1)
+        winner = _insert_move(
+            conn,
+            game_id,
+            len(moves) + 1,
+            next_player,
+            move.row,
+            move.col,
+            board,
+        )
 
         if winner:
-            conn.execute(
-                """
-                UPDATE games
-                SET status = 'finished',
-                    winner = ?,
-                    finished_at = CURRENT_TIMESTAMP
-                WHERE id = ?
-                """,
-                (winner, game_id),
+            _finish_game(conn, game_id, winner)
+            return _game_state(conn, game_id, user_id)
+
+        if is_board_full(board):
+            _finish_game(conn, game_id, None)
+            return _game_state(conn, game_id, user_id)
+
+        if game["mode"] == "ai":
+            conn.execute("UPDATE games SET next_player = 2 WHERE id = ?", (game_id,))
+            difficulty = game["difficulty"] or "normal"
+            ai_move = choose_ai_move(board, 2, 1, difficulty)
+
+            if ai_move is None:
+                _finish_game(conn, game_id, None)
+                return _game_state(conn, game_id, user_id)
+
+            ai_row, ai_col = ai_move
+            ai_winner = _insert_move(
+                conn,
+                game_id,
+                len(moves) + 2,
+                2,
+                ai_row,
+                ai_col,
+                board,
             )
 
-    return MoveResponse(
-        game_id=game_id,
-        player=player,
-        row=move.row,
-        col=move.col,
-        winner=winner,
-        status=status,
-        next_player=next_player,
+            if ai_winner:
+                _finish_game(conn, game_id, 2)
+            elif is_board_full(board):
+                _finish_game(conn, game_id, None)
+            else:
+                conn.execute("UPDATE games SET next_player = 1 WHERE id = ?", (game_id,))
+        else:
+            conn.execute(
+                "UPDATE games SET next_player = ? WHERE id = ?",
+                (2 if next_player == 1 else 1, game_id),
+            )
+
+        return _game_state(conn, game_id, user_id)
+
+
+def _get_game_row_for_user(conn, game_id: int, user_id: int):
+    game = conn.execute(
+        """
+        SELECT *
+        FROM games
+        WHERE id = ?
+          AND (player1_user_id = ? OR player2_user_id = ?)
+        """,
+        (game_id, user_id, user_id),
+    ).fetchone()
+
+    if game is None:
+        raise HTTPException(status_code=404, detail="Game not found")
+    return game
+
+
+def _player_number(game, user_id: int) -> int:
+    if game["player1_user_id"] == user_id:
+        return 1
+    if game["player2_user_id"] == user_id:
+        return 2
+    raise HTTPException(status_code=403, detail="Ehhez a játékhoz nincs hozzáférésed.")
+
+
+def _get_moves(conn, game_id: int):
+    return conn.execute(
+        """
+        SELECT move_no, player, row_idx, col_idx
+        FROM moves
+        WHERE game_id = ?
+        ORDER BY move_no
+        """,
+        (game_id,),
+    ).fetchall()
+
+
+def _build_board(moves) -> list[list[int]]:
+    board = [[0 for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+    for saved in moves:
+        board[saved["row_idx"]][saved["col_idx"]] = saved["player"]
+    return board
+
+
+def _insert_move(
+    conn,
+    game_id: int,
+    move_no: int,
+    player: int,
+    row: int,
+    col: int,
+    board: list[list[int]],
+) -> int | None:
+    conn.execute(
+        """
+        INSERT INTO moves(game_id, move_no, player, row_idx, col_idx)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (game_id, move_no, player, row, col),
     )
+    board[row][col] = player
+    return player if is_winning_move(board, row, col, player) else None
+
+
+def _finish_game(conn, game_id: int, winner: int | None) -> None:
+    conn.execute(
+        """
+        UPDATE games
+        SET status = 'finished',
+            winner = ?,
+            next_player = NULL,
+            finished_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (winner, game_id),
+    )
+
+
+def _game_state(conn, game_id: int, user_id: int) -> dict:
+    game = _get_game_row_for_user(conn, game_id, user_id)
+    moves = _get_moves(conn, game_id)
+    player_number = _player_number(game, user_id)
+
+    player1 = conn.execute(
+        "SELECT username FROM users WHERE id = ?",
+        (game["player1_user_id"],),
+    ).fetchone()
+    player2 = None
+    if game["player2_user_id"] is not None:
+        player2 = conn.execute(
+            "SELECT username FROM users WHERE id = ?",
+            (game["player2_user_id"],),
+        ).fetchone()
+
+    player1_name = player1["username"] if player1 is not None else "Játékos 1"
+    if game["mode"] == "ai":
+        player2_name = "BOT"
+    elif player2 is not None:
+        player2_name = player2["username"]
+    else:
+        player2_name = "Várakozás…"
+
+    return {
+        "game_id": game_id,
+        "mode": game["mode"],
+        "difficulty": game["difficulty"],
+        "status": game["status"],
+        "winner": game["winner"],
+        "next_player": game["next_player"],
+        "player_number": player_number,
+        "player1_name": player1_name,
+        "player2_name": player2_name,
+        "moves": [dict(move) for move in moves],
+    }
 
 
 def _is_https(request: Request) -> bool:
