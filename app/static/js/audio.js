@@ -7,6 +7,10 @@ export function isSoundEnabled() {
   return soundEnabled;
 }
 
+export function unlockAudio() {
+  ensureContext();
+}
+
 export function toggleSound() {
   soundEnabled = !soundEnabled;
   localStorage.setItem(STORAGE_KEY, soundEnabled ? 'on' : 'off');
