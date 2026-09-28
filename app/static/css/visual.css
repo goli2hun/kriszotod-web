@@ -150,6 +150,27 @@
     0 0 calc(10px + 16px * var(--win-flash)) rgba(255,212,66, calc(.18 + .34 * var(--win-flash)));
 }
 
+.winning-strike {
+  position: absolute;
+  z-index: 8;
+  height: 6px;
+  border-radius: 999px;
+  pointer-events: none;
+  transform-origin: left center;
+  background: linear-gradient(90deg, rgba(255,244,170,.15), #fff4a8 14%, #ffc83d 50%, #fff4a8 86%, rgba(255,244,170,.15));
+  box-shadow: 0 0 8px rgba(255,224,105,.95), 0 0 22px rgba(255,190,45,.72), 0 0 38px rgba(255,190,45,.35);
+}
+
+.winning-strike::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+  border-radius: inherit;
+  background: inherit;
+  filter: blur(7px);
+  opacity: .55;
+}
+
 .move-particle {
   position: absolute;
   z-index: 5;
