@@ -93,7 +93,7 @@ body::after {
   z-index: 10;
   background:
     linear-gradient(rgba(6, 15, 24, .38), rgba(6, 15, 24, .5)),
-    url('/static/assets/images/loginscreen.png') center center / cover no-repeat;
+    url('/assets/images/loginscreen.png') center center / cover no-repeat;
 }
 
 #loginView .login-card {
