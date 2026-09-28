@@ -9,7 +9,7 @@ import {
   selectPlayer,
   releasePlayer,
   sendMove
-} from './api.js';
+} from './api.js?v=0.8.1';
 import {
   playClick,
   playError,
@@ -18,8 +18,8 @@ import {
   isSoundEnabled,
   toggleSound,
   unlockAudio
-} from './audio.js';
-import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js';
+} from './audio.js?v=0.8.1';
+import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js?v=0.8.1';
 import {
   animateDifficulty,
   animateModalIn,
@@ -30,7 +30,7 @@ import {
   initVisualEffects,
   markLastMove,
   setBotThinkingVisual
-} from './visual.js';
+} from './visual.js?v=0.8.1';
 
 const loginViewEl = document.querySelector('#loginView');
 const modeViewEl = document.querySelector('#modeView');
