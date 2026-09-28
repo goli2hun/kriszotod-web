@@ -66,8 +66,10 @@ const redPlayerCardEl = document.querySelector('#redPlayerCard');
 const bluePlayerCardEl = document.querySelector('#bluePlayerCard');
 const redPlayerNameEl = document.querySelector('#redPlayerName');
 const redPlayerRoleEl = document.querySelector('#redPlayerRole');
+const redPlayerPortraitEl = redPlayerCardEl.querySelector('.player-portrait');
 const bluePlayerNameEl = document.querySelector('#bluePlayerName');
 const bluePlayerRoleEl = document.querySelector('#bluePlayerRole');
+const bluePlayerPortraitEl = bluePlayerCardEl.querySelector('.player-portrait');
 const gameModeTextEl = document.querySelector('#gameModeText');
 const gameHintEl = document.querySelector('#gameHint');
 const modalNewGameButton = document.querySelector('#modalNewGameButton');
@@ -146,9 +148,28 @@ function playerDisplayName(player) {
   return player === 1 ? player1Name : player2Name;
 }
 
+const PROFILE_IMAGES = {
+  adri: '/assets/images/adri.png',
+  aliz: '/assets/images/lizus.png',
+  bot: '/assets/images/bot.png'
+};
+
+function profileImageFor(name, fallback) {
+  const normalized = String(name || '').trim().toLowerCase();
+  if (normalized === 'adri') return PROFILE_IMAGES.adri;
+  if (normalized === 'aliz' || normalized === 'alíz') return PROFILE_IMAGES.aliz;
+  if (normalized === 'bot') return PROFILE_IMAGES.bot;
+  return fallback;
+}
+
 function updatePlayerCards() {
   redPlayerNameEl.textContent = player1Name.toUpperCase();
   bluePlayerNameEl.textContent = player2Name.toUpperCase();
+
+  redPlayerPortraitEl.src = profileImageFor(player1Name, '/static/assets/portraits/player-red.svg?v=0.9.9');
+  redPlayerPortraitEl.alt = `${player1Name} profilképe`;
+  bluePlayerPortraitEl.src = profileImageFor(player2Name, '/static/assets/portraits/player-blue.svg?v=0.9.9');
+  bluePlayerPortraitEl.alt = gameMode === 'ai' ? 'Bot profilképe' : `${player2Name} profilképe`;
 
   redPlayerRoleEl.textContent = playerNumber === 1 ? 'Piros • Te' : 'Piros • Ellenfél';
   if (gameMode === 'ai') {
