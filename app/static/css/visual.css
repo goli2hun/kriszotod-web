@@ -29,14 +29,17 @@
 
 .global-controls,
 .auth-view,
-.app-shell,
-.modal-backdrop {
+.app-shell {
   position: relative;
   z-index: 1;
 }
 
-.global-controls,
 .modal-backdrop {
+  position: fixed;
+  z-index: 100;
+}
+
+.global-controls {
   position: fixed;
 }
 
