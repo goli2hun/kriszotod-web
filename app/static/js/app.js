@@ -76,9 +76,6 @@ const modalNewGameButton = document.querySelector('#modalNewGameButton');
 const modalLobbyButton = document.querySelector('#modalLobbyButton');
 const finishGameButton = document.querySelector('#finishGameButton');
 
-const themeToggle = document.querySelector('#themeToggle');
-const themeToggleIcon = document.querySelector('#themeToggleIcon');
-const themeToggleText = document.querySelector('#themeToggleText');
 const soundToggle = document.querySelector('#soundToggle');
 const soundToggleIcon = document.querySelector('#soundToggleIcon');
 const soundToggleText = document.querySelector('#soundToggleText');
@@ -763,27 +760,6 @@ function sleep(ms) {
   return new Promise(resolve => window.setTimeout(resolve, ms));
 }
 
-function applyTheme(theme) {
-  const isIvory = theme === 'ivory';
-  document.documentElement.dataset.theme = isIvory ? 'ivory' : 'midnight';
-  themeToggleIcon.textContent = isIvory ? '☾' : '☀';
-  themeToggleText.textContent = isIvory ? 'SÖTÉT' : 'VILÁGOS';
-  themeToggle.setAttribute('aria-label', isIvory ? 'Váltás sötét designra' : 'Váltás világos designra');
-  themeToggle.title = isIvory ? 'Midnight design' : 'Ivory design';
-}
-
-function toggleTheme() {
-  const current = document.documentElement.dataset.theme;
-  const next = current === 'midnight' ? 'ivory' : 'midnight';
-  applyTheme(next);
-  localStorage.setItem('otodolo-theme', next);
-}
-
-function loadTheme() {
-  const saved = localStorage.getItem('otodolo-theme');
-  applyTheme(saved === 'ivory' ? 'ivory' : 'midnight');
-}
-
 function updateSoundToggle() {
   const enabled = isSoundEnabled();
   soundToggleIcon.textContent = enabled ? '🔊' : '🔇';
@@ -801,7 +777,8 @@ function onSoundToggle() {
 }
 
 async function initialize() {
-  loadTheme();
+  document.documentElement.dataset.theme = 'ivory';
+  localStorage.removeItem('otodolo-theme');
   initVisualEffects();
   updateSoundToggle();
   selectDifficulty(selectedDifficulty);
@@ -840,7 +817,6 @@ difficultyButtons.forEach(button => {
 modalNewGameButton.addEventListener('click', () => startNewGameFromResult());
 modalLobbyButton.addEventListener('click', returnToLobby);
 finishGameButton.addEventListener('click', onFinishGame);
-themeToggle.addEventListener('click', toggleTheme);
 soundToggle.addEventListener('click', onSoundToggle);
 
 initialize();
