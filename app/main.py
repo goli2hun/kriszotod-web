@@ -25,9 +25,11 @@ from .game_logic import BOARD_SIZE, is_board_full, is_winning_move
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
+ASSETS_DIR = BASE_DIR.parent / "assets"
 
 app = FastAPI(title="Krisz Ötödölő", version="0.9.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 
 
 class LoginRequest(BaseModel):
