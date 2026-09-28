@@ -52,7 +52,8 @@ export function animateViewIn(root) {
     );
   }
 
-  const children = root.querySelectorAll('.mode-choice, .player-card, .board-panel');
+  const children = [...root.querySelectorAll('.mode-choice, .player-card, .board-panel')]
+    .filter((element) => !element.closest('[hidden], .hidden'));
   if (children.length) {
     gsap.fromTo(
       children,
