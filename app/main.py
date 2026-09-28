@@ -17,6 +17,8 @@ from .auth import (
     get_current_user,
     require_user,
     verify_password,
+    claim_player,
+    release_player,
 )
 from .db import connect, init_db
 from .game_logic import BOARD_SIZE, is_board_full, is_winning_move
@@ -24,13 +26,17 @@ from .game_logic import BOARD_SIZE, is_board_full, is_winning_move
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 
-app = FastAPI(title="Krisz Ötödölő", version="0.6.0")
+app = FastAPI(title="Krisz Ötödölő", version="0.8.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 class LoginRequest(BaseModel):
     username: str = Field(min_length=1, max_length=80)
     password: str = Field(min_length=1, max_length=200)
+
+
+class PlayerSelectRequest(BaseModel):
+    player: Literal['krisz', 'adri']
 
 
 class GameCreateRequest(BaseModel):
@@ -64,6 +70,7 @@ def auth_me(request: Request) -> dict[str, str | bool | None]:
     return {
         "authenticated": user is not None,
         "username": user["username"] if user is not None else None,
+        "player": user["player_name"] if user is not None else None,
     }
 
 
@@ -110,238 +117,114 @@ def auth_logout(request: Request, response: Response) -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/api/games")
+@app.post('/api/lobby/player')
+def select_lobby_player(payload: PlayerSelectRequest, request: Request) -> dict:
+    require_user(request)
+    claim_player(request.cookies.get(COOKIE_NAME), payload.player)
+    return {'ok': True, 'player': payload.player}
+
+
+@app.post('/api/lobby/release')
+def release_lobby_player(request: Request) -> dict:
+    require_user(request)
+    release_player(request.cookies.get(COOKIE_NAME))
+    return {'ok': True}
+
+
+def _identity(request: Request):
+    user = require_user(request)
+    player_name = user['player_name']
+    if player_name not in ('krisz', 'adri'):
+        raise HTTPException(status_code=409, detail='Előbb válaszd ki, hogy Krisz vagy Adri vagy.')
+    return user, str(player_name)
+
+
+@app.post('/api/games')
 def create_game(payload: GameCreateRequest, request: Request) -> dict:
-    user = require_user(request)
-    user_id = int(user["id"])
-
+    user, player_name = _identity(request)
+    user_id = int(user['id'])
     with connect() as conn:
-        if payload.mode == "ai":
-            cursor = conn.execute(
-                """
-                INSERT INTO games(
-                    user_id, player1_user_id, player2_user_id,
-                    mode, difficulty, status, next_player
-                )
-                VALUES (?, ?, NULL, 'ai', ?, 'active', 1)
-                """,
-                (user_id, user_id, payload.difficulty),
-            )
-            return _game_state(conn, int(cursor.lastrowid), user_id)
-
-        conn.execute("BEGIN IMMEDIATE")
-        conn.execute(
-            """
-            DELETE FROM games
-            WHERE mode = 'pvp'
-              AND status = 'waiting'
-              AND player1_user_id = ?
-            """,
-            (user_id,),
-        )
-
-        waiting = conn.execute(
-            """
-            SELECT id
-            FROM games
-            WHERE mode = 'pvp'
-              AND status = 'waiting'
-              AND player2_user_id IS NULL
-              AND player1_user_id <> ?
-            ORDER BY id
-            LIMIT 1
-            """,
-            (user_id,),
-        ).fetchone()
-
+        conn.execute('BEGIN IMMEDIATE')
+        if payload.mode == 'ai':
+            cursor = conn.execute("INSERT INTO games(user_id,player1_user_id,player2_user_id,mode,difficulty,status,next_player,player1_name,player2_name) VALUES(?,?,NULL,'ai',?,'active',1,?,'bot')", (user_id,user_id,payload.difficulty,player_name))
+            return _game_state(conn, int(cursor.lastrowid), player_name)
+        conn.execute("DELETE FROM games WHERE mode='pvp' AND status='waiting' AND player1_name=?", (player_name,))
+        waiting = conn.execute("SELECT id FROM games WHERE mode='pvp' AND status='waiting' AND player2_name IS NULL AND player1_name<>? ORDER BY id LIMIT 1", (player_name,)).fetchone()
         if waiting is not None:
-            game_id = int(waiting["id"])
-            conn.execute(
-                """
-                UPDATE games
-                SET player2_user_id = ?, status = 'active', next_player = 1
-                WHERE id = ?
-                  AND status = 'waiting'
-                  AND player2_user_id IS NULL
-                """,
-                (user_id, game_id),
-            )
+            game_id=int(waiting['id'])
+            conn.execute("UPDATE games SET player2_user_id=?,player2_name=?,status='active',next_player=1 WHERE id=? AND status='waiting' AND player2_name IS NULL", (user_id,player_name,game_id))
         else:
-            cursor = conn.execute(
-                """
-                INSERT INTO games(
-                    user_id, player1_user_id, player2_user_id,
-                    mode, difficulty, status, next_player
-                )
-                VALUES (?, ?, NULL, 'pvp', NULL, 'waiting', NULL)
-                """,
-                (user_id, user_id),
-            )
-            game_id = int(cursor.lastrowid)
-
-        return _game_state(conn, game_id, user_id)
+            cursor=conn.execute("INSERT INTO games(user_id,player1_user_id,player2_user_id,mode,difficulty,status,next_player,player1_name,player2_name) VALUES(?,?,NULL,'pvp',NULL,'waiting',NULL,?,NULL)", (user_id,user_id,player_name))
+            game_id=int(cursor.lastrowid)
+        return _game_state(conn, game_id, player_name)
 
 
-@app.get("/api/games/current")
+@app.get('/api/games/current')
 def get_current_game(request: Request) -> dict:
-    user = require_user(request)
-    user_id = int(user["id"])
-
+    _, player_name = _identity(request)
     with connect() as conn:
-        game = conn.execute(
-            """
-            SELECT id
-            FROM games
-            WHERE status IN ('waiting', 'active')
-              AND mode IN ('pvp', 'ai')
-              AND (player1_user_id = ? OR player2_user_id = ?)
-            ORDER BY id DESC
-            LIMIT 1
-            """,
-            (user_id, user_id),
-        ).fetchone()
-
-        if game is None:
-            return {"game": None}
-
-        return {"game": _game_state(conn, int(game["id"]), user_id)}
+        game=conn.execute("SELECT id FROM games WHERE status IN ('waiting','active') AND mode IN ('pvp','ai') AND (player1_name=? OR player2_name=?) ORDER BY id DESC LIMIT 1", (player_name,player_name)).fetchone()
+        return {'game': None if game is None else _game_state(conn,int(game['id']),player_name)}
 
 
-@app.get("/api/games/{game_id}")
+@app.get('/api/games/{game_id}')
 def get_game(game_id: int, request: Request) -> dict:
-    user = require_user(request)
-    user_id = int(user["id"])
-
+    _, player_name = _identity(request)
     with connect() as conn:
-        return _game_state(conn, game_id, user_id)
+        return _game_state(conn,game_id,player_name)
 
 
-@app.delete("/api/games/{game_id}")
-def cancel_waiting_game(game_id: int, request: Request) -> dict[str, str]:
-    user = require_user(request)
-    user_id = int(user["id"])
-
+@app.delete('/api/games/{game_id}')
+def cancel_waiting_game(game_id: int, request: Request) -> dict[str,str]:
+    _, player_name = _identity(request)
     with connect() as conn:
-        game = conn.execute(
-            "SELECT * FROM games WHERE id = ?",
-            (game_id,),
-        ).fetchone()
-
-        if game is None or game["player1_user_id"] != user_id:
-            raise HTTPException(status_code=404, detail="Game not found")
-
-        if game["status"] != "waiting":
-            raise HTTPException(
-                status_code=409,
-                detail="A másik játékos már csatlakozott a partihoz.",
-            )
-
-        conn.execute("DELETE FROM games WHERE id = ?", (game_id,))
-
-    return {"status": "cancelled"}
+        game=_get_game_row_for_player(conn,game_id,player_name)
+        if game['status']!='waiting' or game['player1_name']!=player_name:
+            raise HTTPException(status_code=409, detail='A másik játékos már csatlakozott a partihoz.')
+        conn.execute('DELETE FROM games WHERE id=?',(game_id,))
+    return {'status':'cancelled'}
 
 
-@app.post("/api/games/{game_id}/moves")
+@app.post('/api/games/{game_id}/moves')
 def make_move(game_id: int, move: MoveRequest, request: Request) -> dict:
-    user = require_user(request)
-    user_id = int(user["id"])
-
+    _, player_name = _identity(request)
     with connect() as conn:
-        conn.execute("BEGIN IMMEDIATE")
-        game = _get_game_row_for_user(conn, game_id, user_id)
-
-        if game["status"] != "active":
-            raise HTTPException(status_code=409, detail="A játék még nem aktív vagy már véget ért.")
-
-        moves = _get_moves(conn, game_id)
-        board = _build_board(moves)
-        next_player = int(game["next_player"] or (1 if len(moves) % 2 == 0 else 2))
-        player_number = _player_number(game, user_id)
-
-        if game["mode"] == "ai":
-            if player_number != 1 or next_player != 1:
-                raise HTTPException(status_code=409, detail="Most a bot következik.")
-        elif player_number != next_player:
-            raise HTTPException(status_code=409, detail="Most a másik játékos következik.")
-
-        if board[move.row][move.col] != 0:
-            raise HTTPException(status_code=409, detail="Cell already occupied")
-
-        winner = _insert_move(
-            conn,
-            game_id,
-            len(moves) + 1,
-            next_player,
-            move.row,
-            move.col,
-            board,
-        )
-
+        conn.execute('BEGIN IMMEDIATE')
+        game=_get_game_row_for_player(conn,game_id,player_name)
+        if game['status']!='active': raise HTTPException(status_code=409,detail='A játék még nem aktív vagy már véget ért.')
+        moves=_get_moves(conn,game_id); board=_build_board(moves)
+        next_player=int(game['next_player'] or (1 if len(moves)%2==0 else 2)); player_number=_player_number(game,player_name)
+        if game['mode']=='ai':
+            if player_number!=1 or next_player!=1: raise HTTPException(status_code=409,detail='Most a bot következik.')
+        elif player_number!=next_player: raise HTTPException(status_code=409,detail='Most a másik játékos következik.')
+        if board[move.row][move.col]!=0: raise HTTPException(status_code=409,detail='Cell already occupied')
+        winner=_insert_move(conn,game_id,len(moves)+1,next_player,move.row,move.col,board)
         if winner:
-            _finish_game(conn, game_id, winner)
-            return _game_state(conn, game_id, user_id)
-
+            _finish_game(conn,game_id,winner); return _game_state(conn,game_id,player_name)
         if is_board_full(board):
-            _finish_game(conn, game_id, None)
-            return _game_state(conn, game_id, user_id)
-
-        if game["mode"] == "ai":
-            conn.execute("UPDATE games SET next_player = 2 WHERE id = ?", (game_id,))
-            difficulty = game["difficulty"] or "normal"
-            ai_move = choose_ai_move(board, 2, 1, difficulty)
-
+            _finish_game(conn,game_id,None); return _game_state(conn,game_id,player_name)
+        if game['mode']=='ai':
+            conn.execute('UPDATE games SET next_player=2 WHERE id=?',(game_id,)); ai_move=choose_ai_move(board,2,1,game['difficulty'] or 'normal')
             if ai_move is None:
-                _finish_game(conn, game_id, None)
-                return _game_state(conn, game_id, user_id)
-
-            ai_row, ai_col = ai_move
-            ai_winner = _insert_move(
-                conn,
-                game_id,
-                len(moves) + 2,
-                2,
-                ai_row,
-                ai_col,
-                board,
-            )
-
-            if ai_winner:
-                _finish_game(conn, game_id, 2)
-            elif is_board_full(board):
-                _finish_game(conn, game_id, None)
-            else:
-                conn.execute("UPDATE games SET next_player = 1 WHERE id = ?", (game_id,))
-        else:
-            conn.execute(
-                "UPDATE games SET next_player = ? WHERE id = ?",
-                (2 if next_player == 1 else 1, game_id),
-            )
-
-        return _game_state(conn, game_id, user_id)
+                _finish_game(conn,game_id,None); return _game_state(conn,game_id,player_name)
+            ai_row,ai_col=ai_move; ai_winner=_insert_move(conn,game_id,len(moves)+2,2,ai_row,ai_col,board)
+            if ai_winner: _finish_game(conn,game_id,2)
+            elif is_board_full(board): _finish_game(conn,game_id,None)
+            else: conn.execute('UPDATE games SET next_player=1 WHERE id=?',(game_id,))
+        else: conn.execute('UPDATE games SET next_player=? WHERE id=?',(2 if next_player==1 else 1,game_id))
+        return _game_state(conn,game_id,player_name)
 
 
-def _get_game_row_for_user(conn, game_id: int, user_id: int):
-    game = conn.execute(
-        """
-        SELECT *
-        FROM games
-        WHERE id = ?
-          AND (player1_user_id = ? OR player2_user_id = ?)
-        """,
-        (game_id, user_id, user_id),
-    ).fetchone()
-
-    if game is None:
-        raise HTTPException(status_code=404, detail="Game not found")
+def _get_game_row_for_player(conn, game_id: int, player_name: str):
+    game=conn.execute('SELECT * FROM games WHERE id=? AND (player1_name=? OR player2_name=?)',(game_id,player_name,player_name)).fetchone()
+    if game is None: raise HTTPException(status_code=404,detail='Game not found')
     return game
 
 
-def _player_number(game, user_id: int) -> int:
-    if game["player1_user_id"] == user_id:
-        return 1
-    if game["player2_user_id"] == user_id:
-        return 2
-    raise HTTPException(status_code=403, detail="Ehhez a játékhoz nincs hozzáférésed.")
+def _player_number(game, player_name: str) -> int:
+    if game['player1_name']==player_name: return 1
+    if game['player2_name']==player_name: return 2
+    raise HTTPException(status_code=403,detail='Ehhez a játékhoz nincs hozzáférésed.')
 
 
 def _get_moves(conn, game_id: int):
@@ -397,42 +280,13 @@ def _finish_game(conn, game_id: int, winner: int | None) -> None:
     )
 
 
-def _game_state(conn, game_id: int, user_id: int) -> dict:
-    game = _get_game_row_for_user(conn, game_id, user_id)
-    moves = _get_moves(conn, game_id)
-    player_number = _player_number(game, user_id)
-
-    player1 = conn.execute(
-        "SELECT username FROM users WHERE id = ?",
-        (game["player1_user_id"],),
-    ).fetchone()
-    player2 = None
-    if game["player2_user_id"] is not None:
-        player2 = conn.execute(
-            "SELECT username FROM users WHERE id = ?",
-            (game["player2_user_id"],),
-        ).fetchone()
-
-    player1_name = player1["username"] if player1 is not None else "Játékos 1"
-    if game["mode"] == "ai":
-        player2_name = "BOT"
-    elif player2 is not None:
-        player2_name = player2["username"]
-    else:
-        player2_name = "Várakozás…"
-
-    return {
-        "game_id": game_id,
-        "mode": game["mode"],
-        "difficulty": game["difficulty"],
-        "status": game["status"],
-        "winner": game["winner"],
-        "next_player": game["next_player"],
-        "player_number": player_number,
-        "player1_name": player1_name,
-        "player2_name": player2_name,
-        "moves": [dict(move) for move in moves],
-    }
+def _game_state(conn, game_id: int, player_name: str) -> dict:
+    game=_get_game_row_for_player(conn,game_id,player_name)
+    moves=_get_moves(conn,game_id)
+    player_number=_player_number(game,player_name)
+    player1_name=(game['player1_name'] or 'Játékos 1').title()
+    player2_name='BOT' if game['mode']=='ai' else (game['player2_name'] or 'Várakozás…').title()
+    return {'game_id':game_id,'mode':game['mode'],'difficulty':game['difficulty'],'status':game['status'],'winner':game['winner'],'next_player':game['next_player'],'player_number':player_number,'player1_name':player1_name,'player2_name':player2_name,'moves':[dict(move) for move in moves]}
 
 
 def _is_https(request: Request) -> bool:

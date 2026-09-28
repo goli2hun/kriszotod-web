@@ -67,7 +67,7 @@ def get_current_user(request: Request):
     with connect() as conn:
         row = conn.execute(
             """
-            SELECT users.id, users.username
+            SELECT users.id, users.username, sessions.token_hash, sessions.player_name
             FROM sessions
             JOIN users ON users.id = sessions.user_id
             WHERE sessions.token_hash = ?
@@ -92,3 +92,28 @@ def require_user(request: Request):
 
 def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def claim_player(token: str | None, player_name: str) -> None:
+    if player_name not in ('krisz', 'adri'):
+        raise HTTPException(status_code=422, detail='Ismeretlen játékos.')
+    if not token:
+        raise HTTPException(status_code=401, detail='Bejelentkezés szükséges.')
+    token_hash = _hash_token(token)
+    now = int(time.time())
+    with connect() as conn:
+        conn.execute('BEGIN IMMEDIATE')
+        current = conn.execute('SELECT player_name FROM sessions WHERE token_hash = ? AND expires_at > ?', (token_hash, now)).fetchone()
+        if current is None:
+            raise HTTPException(status_code=401, detail='Bejelentkezés szükséges.')
+        occupied = conn.execute("SELECT 1 FROM sessions WHERE player_name = ? AND token_hash <> ? AND expires_at > ? LIMIT 1", (player_name, token_hash, now)).fetchone()
+        if occupied is not None:
+            raise HTTPException(status_code=409, detail=f'{player_name.title()} már egy másik eszközön aktív.')
+        conn.execute('UPDATE sessions SET player_name = ? WHERE token_hash = ?', (player_name, token_hash))
+
+
+def release_player(token: str | None) -> None:
+    if not token:
+        return
+    with connect() as conn:
+        conn.execute('UPDATE sessions SET player_name = NULL WHERE token_hash = ?', (_hash_token(token),))

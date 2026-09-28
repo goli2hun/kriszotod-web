@@ -61,15 +61,20 @@
   <section id="modeView" class="auth-view mode-view hidden">
     <div class="login-card mode-card">
       <p class="eyebrow">JÁTÉKMÓD</p>
-      <h2 class="mode-title">Kivel játszol?</h2>
+      <h2 class="mode-title">Lobby</h2>
       <p class="login-subtitle">Belépve: <strong id="modeUsername">—</strong></p>
 
-      <div id="modeChoices" class="mode-choices">
+      <div id="identityChoices" class="mode-choices">
+        <button class="mode-choice identity-button" type="button" data-player="krisz"><span class="mode-icon">🔴</span><span class="mode-choice-copy"><strong>KRISZ</strong><small>Krisz vagyok</small></span></button>
+        <button class="mode-choice identity-button" type="button" data-player="adri"><span class="mode-icon">🔵</span><span class="mode-choice-copy"><strong>ADRI</strong><small>Adri vagyok</small></span></button>
+      </div>
+
+      <div id="modeChoices" class="mode-choices hidden">
         <button id="pvpButton" class="mode-choice" type="button">
           <span class="mode-icon" aria-hidden="true">👥</span>
           <span class="mode-choice-copy">
-            <strong>KÉT JÁTÉKOS</strong>
-            <small>Adri és Krisz egymás ellen</small>
+            <strong id="humanOpponentName">A MÁSIK JÁTÉKOS ELLEN</strong>
+            <small>Megvárom, amíg belép</small>
             <span class="mode-matchup" aria-hidden="true">
               <img class="mode-avatar" src="/static/assets/portraits/player-red.svg" alt="" />
               <span class="mode-vs">VS</span>
@@ -109,6 +114,7 @@
         <button id="cancelWaitingButton" class="secondary-button" type="button">MÉGSEM</button>
       </div>
 
+      <button id="changeIdentityButton" class="text-button hidden" type="button">Másik játékos választása</button>
       <button id="modeLogoutButton" class="text-button" type="button">Kijelentkezés</button>
     </div>
   </section>

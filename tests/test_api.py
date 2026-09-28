@@ -16,12 +16,13 @@ class ApiFlowTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         db.DB_PATH = Path(self.tmp.name) / "test.db"
         db.init_db()
-        self._create_user("krisz", "password123")
-        self._create_user("adri", "password123")
+        self._create_user("kriszotod", "password123")
         self.krisz = TestClient(app)
         self.adri = TestClient(app)
-        self.assertEqual(self.krisz.post('/api/auth/login', json={'username':'krisz','password':'password123'}).status_code, 200)
-        self.assertEqual(self.adri.post('/api/auth/login', json={'username':'adri','password':'password123'}).status_code, 200)
+        self.assertEqual(self.krisz.post('/api/auth/login', json={'username':'kriszotod','password':'password123'}).status_code, 200)
+        self.assertEqual(self.adri.post('/api/auth/login', json={'username':'kriszotod','password':'password123'}).status_code, 200)
+        self.assertEqual(self.krisz.post('/api/lobby/player', json={'player':'krisz'}).status_code, 200)
+        self.assertEqual(self.adri.post('/api/lobby/player', json={'player':'adri'}).status_code, 200)
 
     def tearDown(self):
         self.krisz.close()
@@ -98,6 +99,7 @@ class ApiFlowTests(unittest.TestCase):
         self.assertIn('/static/css/visual.css', page.text)
         self.assertIn('gsap@3.15.0/dist/gsap.min.js', page.text)
         self.assertIn('/static/js/app.js', page.text)
+        self.assertIn('identityChoices', page.text)
 
         visual_js = self.krisz.get('/static/js/visual.js')
         self.assertEqual(visual_js.status_code, 200)

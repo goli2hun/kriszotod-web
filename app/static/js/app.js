@@ -6,6 +6,8 @@ import {
   getSession,
   login,
   logout,
+  selectPlayer,
+  releasePlayer,
   sendMove
 } from './api.js';
 import {
@@ -41,6 +43,10 @@ const loginErrorEl = document.querySelector('#loginError');
 const currentUsernameEl = document.querySelector('#currentUsername');
 const modeUsernameEl = document.querySelector('#modeUsername');
 
+const identityChoicesEl = document.querySelector('#identityChoices');
+const identityButtons = [...document.querySelectorAll('.identity-button')];
+const changeIdentityButtonEl = document.querySelector('#changeIdentityButton');
+const humanOpponentNameEl = document.querySelector('#humanOpponentName');
 const modeChoicesEl = document.querySelector('#modeChoices');
 const waitingPanelEl = document.querySelector('#waitingPanel');
 const pvpButtonEl = document.querySelector('#pvpButton');
@@ -85,6 +91,7 @@ const BOT_THINK_MS = 520;
 let board = makeEmptyBoard();
 let currentPlayer = 1;
 let currentUsername = null;
+let currentIdentity = null;
 let gameId = null;
 let gameMode = null;
 let gameDifficulty = 'normal';
@@ -501,7 +508,7 @@ async function enterGame(state) {
   loginViewEl.classList.add('hidden');
   modeViewEl.classList.add('hidden');
   gameViewEl.classList.remove('hidden');
-  currentUsernameEl.textContent = currentUsername || '—';
+  currentUsernameEl.textContent = currentIdentity ? currentIdentity.toUpperCase() : (currentUsername || '—');
   locked = false;
   gameFinished = false;
   lastTurnPlayer = null;
@@ -512,24 +519,21 @@ async function enterGame(state) {
   if (state.mode === 'pvp' && state.status === 'active') startPolling();
 }
 
-function showMode(username) {
-  stopPolling();
-  clearGameOverTimer();
-  gameOverEl.classList.add('hidden');
-  gameViewEl.classList.add('hidden');
-  loginViewEl.classList.add('hidden');
-  modeViewEl.classList.remove('hidden');
-  modeChoicesEl.classList.remove('hidden');
-  waitingPanelEl.classList.add('hidden');
-  modeUsernameEl.textContent = username || '—';
-  gameId = null;
-  gameMode = null;
-  currentStatus = null;
-  playerNumber = null;
-  gameFinished = false;
-  lastTurnPlayer = null;
-  setModeBusy(false);
-  animateViewIn(modeViewEl);
+function showMode(username, player = currentIdentity) {
+  stopPolling(); clearGameOverTimer(); gameOverEl.classList.add('hidden'); gameViewEl.classList.add('hidden'); loginViewEl.classList.add('hidden'); modeViewEl.classList.remove('hidden'); waitingPanelEl.classList.add('hidden');
+  modeUsernameEl.textContent = username || '—'; currentIdentity = player || null;
+  identityChoicesEl.classList.toggle('hidden', Boolean(currentIdentity)); modeChoicesEl.classList.toggle('hidden', !currentIdentity); changeIdentityButtonEl.classList.toggle('hidden', !currentIdentity);
+  if (currentIdentity) humanOpponentNameEl.textContent = currentIdentity === 'krisz' ? 'ADRI ELLEN' : 'KRISZ ELLEN';
+  gameId=null; gameMode=null; currentStatus=null; playerNumber=null; gameFinished=false; lastTurnPlayer=null; setModeBusy(false); animateViewIn(modeViewEl);
+}
+
+async function chooseIdentity(player) {
+  try { const result=await selectPlayer(player); currentIdentity=result.player; showMode(currentUsername,currentIdentity); } catch(error) { handleModeError(error); }
+}
+
+async function changeIdentity() {
+  try { await releasePlayer(); } catch {}
+  currentIdentity=null; showMode(currentUsername,null);
 }
 
 function showLogin() {
@@ -611,6 +615,7 @@ async function onLogout() {
   }
 
   currentUsername = null;
+  currentIdentity = null;
   showLogin();
 }
 
@@ -742,6 +747,7 @@ async function initialize() {
     const session = await getSession();
     if (session.authenticated) {
       currentUsername = session.username;
+      currentIdentity = session.player || null;
       await resumeOrShowMode();
     } else {
       showLogin();
@@ -758,6 +764,8 @@ document.addEventListener('click', event => {
 });
 
 loginFormEl.addEventListener('submit', onLoginSubmit);
+identityButtons.forEach(button => button.addEventListener('click', () => chooseIdentity(button.dataset.player)));
+changeIdentityButtonEl.addEventListener('click', changeIdentity);
 pvpButtonEl.addEventListener('click', startPvpGame);
 aiButtonEl.addEventListener('click', startAiGame);
 cancelWaitingButtonEl.addEventListener('click', cancelWaiting);

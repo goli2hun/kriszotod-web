@@ -14,7 +14,7 @@ A frontend szándékosan nem használ frameworköt. A játéklogika és az AI is
 
 ## Aktuális állapot
 
-A **v0.6** verzió 2026-09-22-én elkészült, helyi Windows környezetben automata tesztekkel ellenőrzött, majd VPS-re is telepített állapotba került.
+Az aktuális **v0.8** a KriszGame mintájára egy közös webes belépést és külön lobby-játékosazonosságot használ.
 
 Ellenőrzött teszteredmény:
 
@@ -31,7 +31,8 @@ A Windows alatt jelentkező SQLite temp-adatbázis zárolási hibát a központi
 
 - 10×10 tábla
 - 5 egymás mellett = győzelem
-- bejelentkezés SQLite-alapú felhasználókkal
+- egy közös SQLite-alapú webes belépési account
+- lobbyban külön Krisz / Adri játékos-identitás
 - HttpOnly session cookie
 - játékmód-választó belépés után
 - online kétjátékos mód: Krisz és Adri külön böngészőből / eszközről játszhat
@@ -55,11 +56,10 @@ Telepítéshez lásd: `INSTALL.md`.
 
 ## Felhasználók létrehozása
 
-A webes felületen nincs nyitott regisztráció. Krisz és Adri külön felhasználóként jelentkezik be:
+A webes felületen nincs nyitott regisztráció. Egyetlen közös belépési account szükséges:
 
 ```bash
-python -m app.create_user krisz
-python -m app.create_user adri
+python -m app.create_user kriszotod
 ```
 
 A program kétszer bekéri a jelszót. Minimum 8 karakter szükséges.
@@ -138,3 +138,15 @@ PixiJS továbbra sincs a projektben; csak akkor kerülne be, ha egy későbbi k�
 - visszajátszás
 - WebSocket a PvP polling későbbi kiváltására
 - opcionális PixiJS kísérlet, ha a GSAP + CSS vizuális réteg már kevés
+
+
+## v0.8 – KriszGame-szerű login és lobby
+
+- Egyetlen közös webes account; Krisz és Adri nem külön login-user.
+- Belépés után lobby jelenik meg, ahol a session Krisz vagy Adri identitást foglal.
+- Ugyanaz az identitás egyszerre nem foglalható le két aktív sessionből.
+- Játékosválasztás után PvP vagy AI választható.
+- PvP-ben a várakozás és a 850 ms-os állapotfrissítés megmaradt.
+- AI-ban továbbra is Könnyű / Normál / Nehéz fokozat használható.
+- A Visual Pack és az alap játékmenet változatlan maradt.
+- A meglévő SQLite adatbázist az induláskori migráció bővíti, törlés nem szükséges.

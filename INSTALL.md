@@ -12,11 +12,10 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-A két játékos létrehozása:
+Az egyetlen közös webes belépési felhasználó létrehozása:
 
 ```powershell
-python -m app.create_user krisz
-python -m app.create_user adri
+python -m app.create_user kriszotod
 ```
 
 A parancsok kétszer bekérik a jelszót. A jelszó minimum 8 karakter.
@@ -59,8 +58,7 @@ OK
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
-python -m app.create_user krisz
-python -m app.create_user adri
+python -m app.create_user kriszotod
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8020
 ```
 
@@ -82,11 +80,10 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-A két belépési felhasználó, ha még nem létezik:
+A közös belépési felhasználó, ha még nem létezik:
 
 ```bash
-python -m app.create_user krisz
-python -m app.create_user adri
+python -m app.create_user kriszotod
 ```
 
 Tesztindítás:
@@ -257,3 +254,8 @@ A bot teljesen helyben fut a FastAPI alkalmazásban; nincs külső AI API vagy t
 - statisztikai oldal
 - játék-visszajátszás az SQLite lépésekből
 - opcionálisan WebSocket a polling későbbi kiváltására
+
+
+## 11. v0.8 lobby modell
+
+A login és a játékos személye külön fogalom. Mindkét böngésző ugyanazzal a közös accounttal jelentkezik be, majd az egyik session Krisz, a másik Adri identitást választ a lobbyban. Ezután PvP vagy AI indítható. Production frissítéskor az `otodolo.db` fájlt nem kell törölni; az alkalmazás induláskor hozzáadja az új session- és játékosmezőket.
