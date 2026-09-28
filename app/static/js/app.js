@@ -10,7 +10,7 @@ import {
   selectPlayer,
   releasePlayer,
   sendMove
-} from './api.js?v=0.9.1';
+} from './api.js?v=0.9.2';
 import {
   playClick,
   playError,
@@ -19,8 +19,8 @@ import {
   isSoundEnabled,
   toggleSound,
   unlockAudio
-} from './audio.js?v=0.9.1';
-import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js?v=0.9.1';
+} from './audio.js?v=0.9.2';
+import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js?v=0.9.2';
 import {
   animateDifficulty,
   animateModalIn,
@@ -31,7 +31,7 @@ import {
   initVisualEffects,
   markLastMove,
   setBotThinkingVisual
-} from './visual.js?v=0.9.1';
+} from './visual.js?v=0.9.2';
 
 const loginViewEl = document.querySelector('#loginView');
 const modeViewEl = document.querySelector('#modeView');
@@ -313,12 +313,12 @@ function showGameResult(winner) {
     winnerSubtitleEl.textContent = 'BETELT A TÁBLA';
   }
 
-  gameHintEl.textContent = 'A parti véget ért. Indíthatsz új játékot.';
+  gameHintEl.textContent = 'A parti véget ért.';
   clearGameOverTimer();
   gameOverTimer = window.setTimeout(() => {
     gameOverEl.classList.remove('hidden');
     animateModalIn(gameOverEl);
-  }, 780);
+  }, 2000);
 }
 
 async function applyGameState(state, { initial = false, animateNew = true } = {}) {
