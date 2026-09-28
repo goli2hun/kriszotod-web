@@ -57,6 +57,10 @@ export async function cancelGame(gameId) {
   return requestJson(`/api/games/${gameId}`, { method: 'DELETE' }, 'Nem sikerült megszakítani a várakozást.');
 }
 
+export async function finishGame(gameId) {
+  return requestJson(`/api/games/${gameId}/finish`, { method: 'POST' }, 'Nem sikerült befejezni a játékot.');
+}
+
 export async function sendMove(gameId, row, col) {
   return requestJson(`/api/games/${gameId}/moves`, {
     method: 'POST',
