@@ -674,6 +674,13 @@ async function pollGame() {
     }
 
     if (gameViewEl.classList.contains('hidden')) return;
+
+    if (state.status === 'finished' && currentStatus === 'active' && !state.winner) {
+      stopPolling();
+      showMode(currentUsername, currentIdentity);
+      return;
+    }
+
     await applyGameState(state, { animateNew: true });
 
     if (state.status === 'finished') stopPolling();
