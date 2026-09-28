@@ -4,12 +4,13 @@ import {
   getCurrentGame,
   getGame,
   getSession,
+  finishGame,
   login,
   logout,
   selectPlayer,
   releasePlayer,
   sendMove
-} from './api.js?v=0.8.1';
+} from './api.js?v=0.9.0';
 import {
   playClick,
   playError,
@@ -18,8 +19,8 @@ import {
   isSoundEnabled,
   toggleSound,
   unlockAudio
-} from './audio.js?v=0.8.1';
-import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js?v=0.8.1';
+} from './audio.js?v=0.9.0';
+import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js?v=0.9.0';
 import {
   animateDifficulty,
   animateModalIn,
@@ -30,7 +31,7 @@ import {
   initVisualEffects,
   markLastMove,
   setBotThinkingVisual
-} from './visual.js?v=0.8.1';
+} from './visual.js?v=0.9.0';
 
 const loginViewEl = document.querySelector('#loginView');
 const modeViewEl = document.querySelector('#modeView');
@@ -71,7 +72,7 @@ const gameModeTextEl = document.querySelector('#gameModeText');
 const gameHintEl = document.querySelector('#gameHint');
 const newGameButton = document.querySelector('#newGameButton');
 const modalNewGameButton = document.querySelector('#modalNewGameButton');
-const logoutButton = document.querySelector('#logoutButton');
+const finishGameButton = document.querySelector('#finishGameButton');
 
 const themeToggle = document.querySelector('#themeToggle');
 const themeToggleIcon = document.querySelector('#themeToggleIcon');
@@ -532,7 +533,7 @@ function showMode(username, player = currentIdentity) {
   modeChoicesEl.hidden = !currentIdentity;
   changeIdentityButtonEl.classList.toggle('hidden', !currentIdentity);
   changeIdentityButtonEl.hidden = !currentIdentity;
-  if (currentIdentity) humanOpponentNameEl.textContent = currentIdentity === 'krisz' ? 'ADRI ELLEN' : 'KRISZ ELLEN';
+  if (currentIdentity) humanOpponentNameEl.textContent = 'MÁSIK JÁTÉKOS ELLEN';
   gameId=null; gameMode=null; currentStatus=null; playerNumber=null; gameFinished=false; lastTurnPlayer=null; setModeBusy(false); animateViewIn(modeViewEl);
 }
 
@@ -603,6 +604,25 @@ async function onLoginSubmit(event) {
   } finally {
     loginButtonEl.disabled = false;
     loginButtonEl.textContent = 'BELÉPÉS';
+  }
+}
+
+async function onFinishGame() {
+  if (!gameId) {
+    showMode(currentUsername, currentIdentity);
+    return;
+  }
+
+  finishGameButton.disabled = true;
+  try {
+    await finishGame(gameId);
+    stopPolling();
+    showMode(currentUsername, currentIdentity);
+  } catch (error) {
+    if (isAuthError(error)) showLogin();
+    else alert(error.message);
+  } finally {
+    finishGameButton.disabled = false;
   }
 }
 
@@ -784,7 +804,7 @@ difficultyButtons.forEach(button => {
 });
 newGameButton.addEventListener('click', () => startNewGame().catch(error => handleModeError(error)));
 modalNewGameButton.addEventListener('click', () => startNewGame().catch(error => handleModeError(error)));
-logoutButton.addEventListener('click', onLogout);
+finishGameButton.addEventListener('click', onFinishGame);
 themeToggle.addEventListener('click', toggleTheme);
 soundToggle.addEventListener('click', onSoundToggle);
 
