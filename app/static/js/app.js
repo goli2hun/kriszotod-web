@@ -70,6 +70,7 @@ const bluePlayerNameEl = document.querySelector('#bluePlayerName');
 const bluePlayerRoleEl = document.querySelector('#bluePlayerRole');
 const gameModeTextEl = document.querySelector('#gameModeText');
 const gameHintEl = document.querySelector('#gameHint');
+const modalNewGameButton = document.querySelector('#modalNewGameButton');
 const modalLobbyButton = document.querySelector('#modalLobbyButton');
 const finishGameButton = document.querySelector('#finishGameButton');
 
@@ -441,6 +442,23 @@ async function startAiGame() {
   }
 }
 
+async function startNewGameFromResult() {
+  modalNewGameButton.disabled = true;
+  try {
+    const state = await createGame(gameMode, gameMode === 'ai' ? gameDifficulty : 'normal');
+    gameOverEl.classList.add('hidden');
+    if (state.status === 'waiting') {
+      showWaiting(state);
+    } else {
+      await enterGame(state);
+    }
+  } catch (error) {
+    handleModeError(error);
+  } finally {
+    modalNewGameButton.disabled = false;
+  }
+}
+
 function returnToLobby() {
   clearGameOverTimer();
   gameOverEl.classList.add('hidden');
@@ -796,6 +814,7 @@ modeLogoutButtonEl.addEventListener('click', onLogout);
 difficultyButtons.forEach(button => {
   button.addEventListener('click', () => selectDifficulty(button.dataset.difficulty));
 });
+modalNewGameButton.addEventListener('click', () => startNewGameFromResult());
 modalLobbyButton.addEventListener('click', returnToLobby);
 finishGameButton.addEventListener('click', onFinishGame);
 themeToggle.addEventListener('click', toggleTheme);
