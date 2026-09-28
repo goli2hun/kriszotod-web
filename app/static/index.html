@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ÖTÖDÖLŐ</title>
   <meta name="description" content="Modern webes Ötödölő játék" />
-  <link rel="stylesheet" href="/static/css/base.css?v=0.8.1" />
-  <link rel="stylesheet" href="/static/css/themes.css?v=0.8.1" />
-  <link rel="stylesheet" href="/static/css/modes.css?v=0.8.1" />
-  <link rel="stylesheet" href="/static/css/visual.css?v=0.8.1" />
+  <link rel="stylesheet" href="/static/css/base.css?v=0.9.0" />
+  <link rel="stylesheet" href="/static/css/themes.css?v=0.9.0" />
+  <link rel="stylesheet" href="/static/css/modes.css?v=0.9.0" />
+  <link rel="stylesheet" href="/static/css/visual.css?v=0.9.0" />
 </head>
 <body>
   <div class="ambient-lights" aria-hidden="true">
@@ -68,6 +68,7 @@
       <div id="identityChoices" class="mode-choices">
         <button class="mode-choice identity-button" type="button" data-player="krisz"><span class="mode-icon">🔴</span><span class="mode-choice-copy"><strong>KRISZ</strong><small>Krisz vagyok</small></span></button>
         <button class="mode-choice identity-button" type="button" data-player="adri"><span class="mode-icon">🔵</span><span class="mode-choice-copy"><strong>ADRI</strong><small>Adri vagyok</small></span></button>
+        <button class="mode-choice identity-button" type="button" data-player="aliz"><span class="mode-icon">🟣</span><span class="mode-choice-copy"><strong>ALÍZ</strong><small>Alíz vagyok</small></span></button>
       </div>
 
       <div id="modeChoices" class="mode-choices hidden">
@@ -77,9 +78,9 @@
             <strong id="humanOpponentName">A MÁSIK JÁTÉKOS ELLEN</strong>
             <small>Megvárom, amíg belép</small>
             <span class="mode-matchup" aria-hidden="true">
-              <img class="mode-avatar" src="/static/assets/portraits/player-red.svg?v=0.8.1" alt="" />
+              <img class="mode-avatar" src="/static/assets/portraits/player-red.svg?v=0.9.0" alt="" />
               <span class="mode-vs">VS</span>
-              <img class="mode-avatar" src="/static/assets/portraits/player-blue.svg?v=0.8.1" alt="" />
+              <img class="mode-avatar" src="/static/assets/portraits/player-blue.svg?v=0.9.0" alt="" />
             </span>
           </span>
         </button>
@@ -91,7 +92,7 @@
               <strong>BOT ELLEN</strong>
               <small>Válassz nehézséget</small>
               <span class="mode-matchup" aria-hidden="true">
-                <img class="mode-avatar" src="/static/assets/portraits/player-red.svg?v=0.8.1" alt="" />
+                <img class="mode-avatar" src="/static/assets/portraits/player-red.svg?v=0.9.0" alt="" />
                 <span class="mode-vs">VS</span>
                 <span class="mode-bot-badge">🤖</span>
               </span>
@@ -111,7 +112,7 @@
       <div id="waitingPanel" class="waiting-panel hidden" aria-live="polite">
         <span class="waiting-spinner" aria-hidden="true"></span>
         <strong>Várakozás a másik játékosra…</strong>
-        <small>Amint Adri vagy Krisz belép és a kétjátékos módot választja, indul a parti.</small>
+        <small>Amint egy másik játékos belép és a kétjátékos módot választja, indul a parti.</small>
         <button id="cancelWaitingButton" class="secondary-button" type="button">MÉGSEM</button>
       </div>
 
@@ -140,7 +141,7 @@
     <section class="game-layout">
       <aside id="redPlayerCard" class="player-card player-red active">
         <div class="portrait-frame portrait-red">
-          <img class="player-portrait" src="/static/assets/portraits/player-red.svg?v=0.8.1" alt="Piros játékos" />
+          <img class="player-portrait" src="/static/assets/portraits/player-red.svg?v=0.9.0" alt="Piros játékos" />
         </div>
         <div class="player-copy">
           <span id="redPlayerName" class="player-label">PIROS</span>
@@ -162,7 +163,7 @@
 
       <aside id="bluePlayerCard" class="player-card player-blue">
         <div class="portrait-frame portrait-blue">
-          <img class="player-portrait" src="/static/assets/portraits/player-blue.svg?v=0.8.1" alt="Kék játékos" />
+          <img class="player-portrait" src="/static/assets/portraits/player-blue.svg?v=0.9.0" alt="Kék játékos" />
         </div>
         <div class="player-copy">
           <span id="bluePlayerName" class="player-label">KÉK</span>
@@ -173,7 +174,7 @@
 
     <section class="actions">
       <button id="newGameButton" class="primary-button" type="button">↻ ÚJ JÁTÉK</button>
-      <button id="logoutButton" class="secondary-button" type="button">KIJELENTKEZÉS</button>
+      <button id="finishGameButton" class="secondary-button" type="button">JÁTÉK BEFEJEZÉSE</button>
     </section>
 
     <p id="gameHint" class="hint">A jobb felső vezérlőkkel válthatsz designt és némíthatod a játékot.</p>
@@ -192,6 +193,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
-  <script type="module" src="/static/js/app.js?v=0.8.1"></script>
+  <script type="module" src="/static/js/app.js?v=0.9.0"></script>
 </body>
 </html>
