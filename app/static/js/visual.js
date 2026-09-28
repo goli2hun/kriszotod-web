@@ -196,7 +196,8 @@ export function animateWinningLine(cells, board) {
   strike.style.left = `${x1}px`;
   strike.style.top = `${y1}px`;
   strike.style.width = `${length}px`;
-  strike.style.transform = `translateY(-50%) rotate(${angle}deg) scaleX(0)`;
+  strike.style.setProperty('--strike-angle', `${angle}deg`);
+  strike.style.transform = `translateY(-50%) rotate(var(--strike-angle)) scaleX(0)`;
   board.appendChild(strike);
 
   if (canAnimate()) {
@@ -215,9 +216,9 @@ export function animateWinningLine(cells, board) {
         { scale: 1.13, duration: 0.2, stagger: 0.06, yoyo: true, repeat: 1, ease: 'power1.inOut', clearProps: 'transform' },
         '<'
       )
-      .to(strike, { scaleX: 1, duration: 0.62, ease: 'power3.inOut' }, 0.12);
+      .to(strike, { '--strike-scale': 1, duration: 0.62, ease: 'power3.inOut' }, 0.12);
   } else {
-    strike.style.transform = `translateY(-50%) rotate(${angle}deg) scaleX(1)`;
+    strike.style.setProperty('--strike-scale', '1');
   }
 
   createVictoryBurst(board, 24);
