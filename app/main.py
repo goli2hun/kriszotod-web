@@ -26,7 +26,7 @@ from .game_logic import BOARD_SIZE, is_board_full, is_winning_move
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 
-app = FastAPI(title="Krisz Ötödölő", version="0.8.0")
+app = FastAPI(title="Krisz Ötödölő", version="0.9.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -36,7 +36,7 @@ class LoginRequest(BaseModel):
 
 
 class PlayerSelectRequest(BaseModel):
-    player: Literal['krisz', 'adri']
+    player: Literal['krisz', 'adri', 'aliz']
 
 
 class GameCreateRequest(BaseModel):
@@ -134,8 +134,8 @@ def release_lobby_player(request: Request) -> dict:
 def _identity(request: Request):
     user = require_user(request)
     player_name = user['player_name']
-    if player_name not in ('krisz', 'adri'):
-        raise HTTPException(status_code=409, detail='Előbb válaszd ki, hogy Krisz vagy Adri vagy.')
+    if player_name not in ('krisz', 'adri', 'aliz'):
+        raise HTTPException(status_code=409, detail='Előbb válaszd ki, hogy Krisz, Adri vagy Alíz vagy.')
     return user, str(player_name)
 
 
@@ -183,6 +183,18 @@ def cancel_waiting_game(game_id: int, request: Request) -> dict[str,str]:
             raise HTTPException(status_code=409, detail='A másik játékos már csatlakozott a partihoz.')
         conn.execute('DELETE FROM games WHERE id=?',(game_id,))
     return {'status':'cancelled'}
+
+
+@app.post('/api/games/{game_id}/finish')
+def finish_game(game_id: int, request: Request) -> dict[str, str]:
+    _, player_name = _identity(request)
+    with connect() as conn:
+        conn.execute('BEGIN IMMEDIATE')
+        game = _get_game_row_for_player(conn, game_id, player_name)
+        if game['status'] not in ('waiting', 'active'):
+            return {'status': 'finished'}
+        _finish_game(conn, game_id, None)
+    return {'status': 'finished'}
 
 
 @app.post('/api/games/{game_id}/moves')
