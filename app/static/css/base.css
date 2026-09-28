@@ -62,9 +62,20 @@ body::after {
 }
 
 #gameView {
-  position: relative;
+  position: fixed;
+  inset: 0;
+  z-index: 5;
   isolation: isolate;
+  width: 100vw;
+  min-height: 100vh;
+  height: 100dvh;
+  max-width: none;
+  padding: clamp(16px, 2.2vh, 26px) clamp(18px, 2vw, 32px);
+  border: 0;
+  border-radius: 0;
+  overflow: auto;
   background: color-mix(in srgb, var(--shell-bg) 82%, transparent);
+  box-shadow: none;
 }
 
 #gameView::before,
@@ -124,7 +135,7 @@ body::after {
   background-color: #102333;
   background-image: url('/assets/images/loginscreen.png');
   background-position: center center;
-  background-size: contain;
+  background-size: cover;
   background-repeat: no-repeat;
 }
 
@@ -713,6 +724,7 @@ h1 {
 @media (max-width: 900px) {
   body { padding: 16px 0; }
   .app-shell { padding: 22px; }
+  #gameView { padding: 18px; }
   .game-layout { grid-template-columns: 1fr; }
   .player-card { min-height: auto; flex-direction: row; justify-content: flex-start; }
   .player-copy { align-items: flex-start; }
@@ -723,6 +735,7 @@ h1 {
 
 @media (max-width: 560px) {
   .app-shell { width: min(100% - 18px, 1180px); padding: 18px 12px; border-radius: 22px; }
+  #gameView { width: 100vw; padding: 14px 10px; border-radius: 0; }
   .topbar { align-items: flex-start; }
   .global-controls { top: 12px; right: 12px; gap: 7px; }
   .theme-button { min-width: 46px; width: 46px; padding: 0; }
