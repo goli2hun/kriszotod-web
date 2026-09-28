@@ -10,7 +10,7 @@ import {
   selectPlayer,
   releasePlayer,
   sendMove
-} from './api.js?v=0.9.0';
+} from './api.js?v=0.9.1';
 import {
   playClick,
   playError,
@@ -19,8 +19,8 @@ import {
   isSoundEnabled,
   toggleSound,
   unlockAudio
-} from './audio.js?v=0.9.0';
-import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js?v=0.9.0';
+} from './audio.js?v=0.9.1';
+import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js?v=0.9.1';
 import {
   animateDifficulty,
   animateModalIn,
@@ -31,7 +31,7 @@ import {
   initVisualEffects,
   markLastMove,
   setBotThinkingVisual
-} from './visual.js?v=0.9.0';
+} from './visual.js?v=0.9.1';
 
 const loginViewEl = document.querySelector('#loginView');
 const modeViewEl = document.querySelector('#modeView');
@@ -70,8 +70,7 @@ const bluePlayerNameEl = document.querySelector('#bluePlayerName');
 const bluePlayerRoleEl = document.querySelector('#bluePlayerRole');
 const gameModeTextEl = document.querySelector('#gameModeText');
 const gameHintEl = document.querySelector('#gameHint');
-const newGameButton = document.querySelector('#newGameButton');
-const modalNewGameButton = document.querySelector('#modalNewGameButton');
+const modalLobbyButton = document.querySelector('#modalLobbyButton');
 const finishGameButton = document.querySelector('#finishGameButton');
 
 const themeToggle = document.querySelector('#themeToggle');
@@ -196,7 +195,6 @@ function updateStatus() {
       : `Várakozás ${playerDisplayName(currentPlayer)} lépésére…`;
   }
 
-  newGameButton.disabled = gameMode === 'pvp' && !gameFinished;
 }
 
 function showBotThinking() {
@@ -294,7 +292,6 @@ function showGameResult(winner) {
   redPlayerCardEl.classList.remove('active');
   bluePlayerCardEl.classList.remove('active');
   setBotThinkingVisual(false, statusPillEl, bluePlayerCardEl);
-  newGameButton.disabled = false;
 
   if (winner) {
     const isRed = winner === 1;
@@ -444,20 +441,10 @@ async function startAiGame() {
   }
 }
 
-async function startNewGame() {
+function returnToLobby() {
   clearGameOverTimer();
   gameOverEl.classList.add('hidden');
-
-  if (gameMode === 'ai') {
-    const state = await createGame('ai', gameDifficulty);
-    await enterGame(state);
-    return;
-  }
-
-  if (gameMode === 'pvp' && gameFinished) {
-    showMode(currentUsername);
-    await startPvpGame();
-  }
+  showMode(currentUsername, currentIdentity);
 }
 
 function showWaiting(state) {
@@ -809,8 +796,7 @@ modeLogoutButtonEl.addEventListener('click', onLogout);
 difficultyButtons.forEach(button => {
   button.addEventListener('click', () => selectDifficulty(button.dataset.difficulty));
 });
-newGameButton.addEventListener('click', () => startNewGame().catch(error => handleModeError(error)));
-modalNewGameButton.addEventListener('click', () => startNewGame().catch(error => handleModeError(error)));
+modalLobbyButton.addEventListener('click', returnToLobby);
 finishGameButton.addEventListener('click', onFinishGame);
 themeToggle.addEventListener('click', toggleTheme);
 soundToggle.addEventListener('click', onSoundToggle);
