@@ -82,6 +82,8 @@ const soundToggleText = document.querySelector('#soundToggleText');
 
 const gameOverEl = document.querySelector('#gameOver');
 const winnerTextEl = document.querySelector('#winnerText');
+const winnerAvatarFrameEl = document.querySelector('#winnerAvatarFrame');
+const winnerAvatarEl = document.querySelector('#winnerAvatar');
 const winnerDotEl = document.querySelector('#winnerDot');
 const winnerSubtitleEl = document.querySelector('#winnerSubtitle');
 
@@ -322,6 +324,9 @@ function showGameResult(winner) {
     statusDotEl.classList.toggle('red', isRed);
     statusDotEl.classList.toggle('blue', !isRed);
     winnerTextEl.textContent = `${name} NYERT!`;
+    winnerAvatarEl.src = profileImageFor(playerDisplayName(winner), winner === 1 ? '/static/assets/portraits/player-red.svg?v=0.9.9' : '/static/assets/portraits/player-blue.svg?v=0.9.9');
+    winnerAvatarEl.alt = `${name} profilképe`;
+    winnerAvatarFrameEl.classList.remove('hidden');
     winnerDotEl.classList.remove('hidden');
     winnerDotEl.classList.toggle('red', isRed);
     winnerDotEl.classList.toggle('blue', !isRed);
@@ -330,6 +335,7 @@ function showGameResult(winner) {
   } else {
     statusTextEl.textContent = 'DÖNTETLEN';
     winnerTextEl.textContent = 'DÖNTETLEN';
+    winnerAvatarFrameEl.classList.add('hidden');
     winnerDotEl.classList.add('hidden');
     winnerSubtitleEl.textContent = 'BETELT A TÁBLA';
   }
