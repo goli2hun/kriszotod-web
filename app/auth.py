@@ -95,7 +95,7 @@ def _hash_token(token: str) -> str:
 
 
 def claim_player(token: str | None, player_name: str) -> None:
-    if player_name not in ('krisz', 'adri'):
+    if player_name not in ('krisz', 'adri', 'aliz'):
         raise HTTPException(status_code=422, detail='Ismeretlen játékos.')
     if not token:
         raise HTTPException(status_code=401, detail='Bejelentkezés szükséges.')
