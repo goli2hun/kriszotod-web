@@ -149,6 +149,7 @@ function playerDisplayName(player) {
 }
 
 const PROFILE_IMAGES = {
+  krisz: '/assets/images/krisz.png',
   adri: '/assets/images/adri.png',
   aliz: '/assets/images/lizus.png',
   bot: '/assets/images/bot.png'
@@ -156,6 +157,7 @@ const PROFILE_IMAGES = {
 
 function profileImageFor(name, fallback) {
   const normalized = String(name || '').trim().toLowerCase();
+  if (normalized === 'krisz') return PROFILE_IMAGES.krisz;
   if (normalized === 'adri') return PROFILE_IMAGES.adri;
   if (normalized === 'aliz' || normalized === 'alíz') return PROFILE_IMAGES.aliz;
   if (normalized === 'bot') return PROFILE_IMAGES.bot;
