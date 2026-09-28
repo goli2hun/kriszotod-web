@@ -372,10 +372,10 @@ h1 {
 }
 
 .portrait-frame {
-  width: 104px;
-  height: 104px;
+  width: 122px;
+  height: 122px;
   padding: 5px;
-  border-radius: 31px;
+  border-radius: 50%;
   overflow: hidden;
   position: relative;
   background: var(--button-soft);
@@ -389,7 +389,8 @@ h1 {
   height: 100%;
   display: block;
   object-fit: cover;
-  border-radius: 26px;
+  object-position: center;
+  border-radius: 50%;
 }
 
 .player-red.active .portrait-frame {
@@ -685,8 +686,8 @@ h1 {
   .game-layout { grid-template-columns: 1fr; }
   .player-card { min-height: auto; flex-direction: row; justify-content: flex-start; }
   .player-copy { align-items: flex-start; }
-  .portrait-frame { width: 68px; height: 68px; border-radius: 20px; padding: 4px; }
-  .player-portrait { border-radius: 16px; }
+  .portrait-frame { width: 72px; height: 72px; border-radius: 50%; padding: 4px; }
+  .player-portrait { border-radius: 50%; }
   .board-panel { order: -1; }
 }
 
