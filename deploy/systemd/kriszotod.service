@@ -3,8 +3,8 @@ Description=Krisz Ötödölő FastAPI
 After=network.target
 
 [Service]
-User=www-data
-Group=www-data
+User=krisztian
+Group=krisztian
 WorkingDirectory=/opt/kriszotod
 Environment="PATH=/opt/kriszotod/.venv/bin"
 ExecStart=/opt/kriszotod/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8030
