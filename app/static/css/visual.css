@@ -152,16 +152,20 @@
 
 .winning-strike {
   --strike-angle: 0deg;
-  --strike-scale: 0;
   position: absolute;
   z-index: 8;
   height: 6px;
   border-radius: 999px;
   pointer-events: none;
   transform-origin: left center;
-  transform: translateY(-50%) rotate(var(--strike-angle)) scaleX(var(--strike-scale));
+  transform: translateY(-50%) rotate(var(--strike-angle)) scaleX(0);
+  transition: transform .62s cubic-bezier(.22,.8,.24,1);
   background: linear-gradient(90deg, rgba(255,244,170,.15), #fff4a8 14%, #ffc83d 50%, #fff4a8 86%, rgba(255,244,170,.15));
   box-shadow: 0 0 8px rgba(255,224,105,.95), 0 0 22px rgba(255,190,45,.72), 0 0 38px rgba(255,190,45,.35);
+}
+
+.winning-strike.drawn {
+  transform: translateY(-50%) rotate(var(--strike-angle)) scaleX(1);
 }
 
 .winning-strike::after {
