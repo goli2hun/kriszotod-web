@@ -175,7 +175,29 @@ export function setBotThinkingVisual(enabled, statusPill, botCard) {
 }
 
 export function animateWinningLine(cells, board) {
-  if (!cells?.length) return;
+  if (!cells?.length || !board) return;
+
+  board.querySelector('.winning-strike')?.remove();
+
+  const first = cells[0];
+  const last = cells[cells.length - 1];
+  const boardRect = board.getBoundingClientRect();
+  const firstRect = first.getBoundingClientRect();
+  const lastRect = last.getBoundingClientRect();
+  const x1 = firstRect.left + firstRect.width / 2 - boardRect.left;
+  const y1 = firstRect.top + firstRect.height / 2 - boardRect.top;
+  const x2 = lastRect.left + lastRect.width / 2 - boardRect.left;
+  const y2 = lastRect.top + lastRect.height / 2 - boardRect.top;
+  const length = Math.hypot(x2 - x1, y2 - y1);
+  const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+  const strike = document.createElement('span');
+  strike.className = 'winning-strike';
+  strike.style.left = `${x1}px`;
+  strike.style.top = `${y1}px`;
+  strike.style.width = `${length}px`;
+  strike.style.transform = `translateY(-50%) rotate(${angle}deg) scaleX(0)`;
+  board.appendChild(strike);
 
   if (canAnimate()) {
     const gsap = gsapInstance();
@@ -192,7 +214,10 @@ export function animateWinningLine(cells, board) {
         { scale: 1 },
         { scale: 1.13, duration: 0.2, stagger: 0.06, yoyo: true, repeat: 1, ease: 'power1.inOut', clearProps: 'transform' },
         '<'
-      );
+      )
+      .to(strike, { scaleX: 1, duration: 0.62, ease: 'power3.inOut' }, 0.12);
+  } else {
+    strike.style.transform = `translateY(-50%) rotate(${angle}deg) scaleX(1)`;
   }
 
   createVictoryBurst(board, 24);
