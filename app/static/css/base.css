@@ -91,18 +91,20 @@ body::after {
   position: fixed;
   inset: 0;
   z-index: 10;
-  background:
-    linear-gradient(rgba(6, 15, 24, .38), rgba(6, 15, 24, .5)),
-    url('/assets/images/loginscreen.png') center center / cover no-repeat;
+  background-color: #102333;
+  background-image: url('/assets/images/loginscreen.png');
+  background-position: center center;
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 #loginView .login-card {
   width: min(430px, calc(100vw - 40px));
   padding: 32px 36px;
-  background: rgba(10, 24, 35, .72);
-  border-color: rgba(255,255,255,.16);
-  box-shadow: 0 24px 70px rgba(0,0,0,.42);
-  backdrop-filter: blur(16px);
+  background: rgba(10, 24, 35, .48);
+  border-color: rgba(255,255,255,.2);
+  box-shadow: 0 18px 50px rgba(0,0,0,.28);
+  backdrop-filter: blur(10px);
 }
 
 #loginView .login-mark,
