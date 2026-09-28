@@ -14,7 +14,7 @@ A frontend szándékosan nem használ frameworköt. A játéklogika és az AI is
 
 ## Aktuális állapot
 
-Az aktuális **v0.9.1** a KriszGame mintájára egy közös webes belépést és külön lobby-játékosazonosságot használ.
+Az aktuális **v0.9.16** a KriszGame mintájára egy közös webes belépést és külön lobby-játékosazonosságot használ.
 
 Ellenőrzött teszteredmény:
 
@@ -45,12 +45,17 @@ A Windows alatt jelentkező SQLite temp-adatbázis zárolási hibát a központi
 - a Nehéz bot az ellenfél legerősebb következő válaszát is figyelembe veszi
 - a Könnyű bot több véletlent és szándékos pontatlanságot kap
 - játékmenet mentése SQLite-ba
-- Midnight / Ivory design
+- egységes világos / Ivory design
 - hover korong-preview
 - játékosportrék
 - korong-lerakási és győzelmi animációk
 - procedurális Web Audio hangok
 - hang be/ki kapcsoló
+- teljes képernyős login és játéknézet
+- saját login háttérgrafika és visszafogott lobby háttér
+- animált, az ötös irányát követő győzelmi áthúzás
+- kb. 2 másodperccel késleltetett eredménydialógus
+- nyertes játékos avatárja az eredménydialógusban
 
 Telepítéshez lásd: `INSTALL.md`.
 
@@ -163,3 +168,26 @@ PixiJS továbbra sincs a projektben; csak akkor kerülne be, ha egy későbbi k�
 - Az **ÚJ JÁTÉK** gomb kikerült a játékoldalról; befejezett parti után **VISSZA A LOBBYBA** jelenik meg.
 - A frontend API-hibakezelés olvasható üzenetet készít a FastAPI strukturált validációs hibáiból is.
 - A statikus frontend assetek verziózott URL-t használnak (jelenleg **v0.9.1**), így release után a böngésző nem tartja bent a régi JS/CSS/kép asseteket.
+
+
+## v0.9.2–v0.9.16 – UI, teljes képernyő és győzelmi élmény
+
+- A nyertes öt korongot fénylő arany vonal húzza át; a vonal az ötös tényleges irányát követi vízszintesen, függőlegesen és mindkét átlóban.
+- A vonalrajzolás külön CSS animáció, így nem ütközik a GSAP koronganimációival.
+- A győzelmi dialógus kb. 2 másodperc késleltetéssel jelenik meg.
+- Az eredménydialóguson: **ÚJ JÁTÉK**, alatta **VISSZA A LOBBYBA**. Az új játék megtartja az előző módot és AI esetén a nehézséget.
+- A dialógus megjeleníti a nyertes tényleges profilképét/avatárját; döntetlennél nincs nyertes-avatar.
+- A modal rétegezése javítva lett a teljes képernyős játéknézet fölött, a visual.css felülírását is megszüntetve.
+- A login az `assets/images/loginscreen.png` hátteret használja; az `assets/` könyvtárat a FastAPI `/assets` útvonalon szolgálja ki.
+- A login nézet teljes képernyős.
+- A lobby visszafogott háttérgrafikát és áttetszőbb panelt kapott; a jelenlegi lobby elrendezést stabilnak tekintjük.
+- A játéknézet teljes képernyős, a 10×10-es tábla a viewport magasságához igazodik.
+- A Midnight / Ivory témaváltó megszűnt. Most kizárólag a világos **Ivory** profil használatos; a korábbi témaérték törlődik a localStorage-ból.
+- A hangkapcsoló megmaradt.
+- A frontend asset cache-busting verziója jelenleg **v0.9.16**.
+
+### Jelenlegi képernyőfolyam
+
+`Login → Lobby / játékos-identitás → PvP vagy BOT → Játék → győzelmi animáció → eredménydialógus → Új játék vagy Lobby`
+
+A lobby játékos-identitásai: **Krisz, Adri, Alíz**. BOT módban a BOT külön cicás avatárt használ.
