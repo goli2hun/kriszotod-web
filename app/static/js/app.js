@@ -470,8 +470,12 @@ function showWaiting(state) {
   loginViewEl.classList.add('hidden');
   gameViewEl.classList.add('hidden');
   modeViewEl.classList.remove('hidden');
+  identityChoicesEl.classList.add('hidden');
+  identityChoicesEl.hidden = true;
   modeChoicesEl.classList.add('hidden');
+  modeChoicesEl.hidden = true;
   waitingPanelEl.classList.remove('hidden');
+  waitingPanelEl.hidden = false;
   animateViewIn(modeViewEl);
   startPolling();
 }
@@ -522,7 +526,12 @@ async function enterGame(state) {
 function showMode(username, player = currentIdentity) {
   stopPolling(); clearGameOverTimer(); gameOverEl.classList.add('hidden'); gameViewEl.classList.add('hidden'); loginViewEl.classList.add('hidden'); modeViewEl.classList.remove('hidden'); waitingPanelEl.classList.add('hidden');
   modeUsernameEl.textContent = username || '—'; currentIdentity = player || null;
-  identityChoicesEl.classList.toggle('hidden', Boolean(currentIdentity)); modeChoicesEl.classList.toggle('hidden', !currentIdentity); changeIdentityButtonEl.classList.toggle('hidden', !currentIdentity);
+  identityChoicesEl.classList.toggle('hidden', Boolean(currentIdentity));
+  identityChoicesEl.hidden = Boolean(currentIdentity);
+  modeChoicesEl.classList.toggle('hidden', !currentIdentity);
+  modeChoicesEl.hidden = !currentIdentity;
+  changeIdentityButtonEl.classList.toggle('hidden', !currentIdentity);
+  changeIdentityButtonEl.hidden = !currentIdentity;
   if (currentIdentity) humanOpponentNameEl.textContent = currentIdentity === 'krisz' ? 'ADRI ELLEN' : 'KRISZ ELLEN';
   gameId=null; gameMode=null; currentStatus=null; playerNumber=null; gameFinished=false; lastTurnPlayer=null; setModeBusy(false); animateViewIn(modeViewEl);
 }
