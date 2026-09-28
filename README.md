@@ -14,7 +14,7 @@ A frontend szándékosan nem használ frameworköt. A játéklogika és az AI is
 
 ## Aktuális állapot
 
-Az aktuális **v0.8** a KriszGame mintájára egy közös webes belépést és külön lobby-játékosazonosságot használ.
+Az aktuális **v0.9.1** a KriszGame mintájára egy közös webes belépést és külön lobby-játékosazonosságot használ.
 
 Ellenőrzött teszteredmény:
 
@@ -32,10 +32,10 @@ A Windows alatt jelentkező SQLite temp-adatbázis zárolási hibát a központi
 - 10×10 tábla
 - 5 egymás mellett = győzelem
 - egy közös SQLite-alapú webes belépési account
-- lobbyban külön Krisz / Adri játékos-identitás
+- lobbyban külön Krisz / Adri / Alíz játékos-identitás
 - HttpOnly session cookie
 - játékmód-választó belépés után
-- online kétjátékos mód: Krisz és Adri külön böngészőből / eszközről játszhat
+- online kétjátékos mód: Krisz, Adri és Alíz közül bármely két külön játékos játszhat külön böngészőből / eszközről
 - mindkét felhasználó indíthat kétjátékos partit; az első vár, a második automatikusan csatlakozik
 - szerveroldali kör- és lépésellenőrzés
 - aktív vagy várakozó parti visszaállítása oldalfrissítés után
@@ -150,3 +150,16 @@ PixiJS továbbra sincs a projektben; csak akkor kerülne be, ha egy későbbi k�
 - AI-ban továbbra is Könnyű / Normál / Nehéz fokozat használható.
 - A Visual Pack és az alap játékmenet változatlan maradt.
 - A meglévő SQLite adatbázist az induláskori migráció bővíti, törlés nem szükséges.
+
+
+## v0.9.1 – Három játékos és parti lezárása
+
+- A lobbyban már Krisz, Adri és Alíz identitás is választható.
+- Ugyanaz az identitás továbbra sem foglalható le két aktív sessionből.
+- PvP-ben a három családi játékos közül bármely két külön identitás összepárosítható.
+- A játékoldali Kijelentkezés helyét a **JÁTÉK BEFEJEZÉSE** vette át.
+- A JÁTÉK BEFEJEZÉSE lezárja az aktuális partit, de a közös webes sessiont nem bontja; a játékos visszatér a lobbyba.
+- PvP-ben a másik fél kliensét a polling visszavezeti a lobbyba, ha az ellenfél lezárta a partit.
+- Az **ÚJ JÁTÉK** gomb kikerült a játékoldalról; befejezett parti után **VISSZA A LOBBYBA** jelenik meg.
+- A frontend API-hibakezelés olvasható üzenetet készít a FastAPI strukturált validációs hibáiból is.
+- A statikus frontend assetek verziózott URL-t használnak (jelenleg **v0.9.1**), így release után a böngésző nem tartja bent a régi JS/CSS/kép asseteket.
