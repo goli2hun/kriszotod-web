@@ -197,8 +197,11 @@ export function animateWinningLine(cells, board) {
   strike.style.top = `${y1}px`;
   strike.style.width = `${length}px`;
   strike.style.setProperty('--strike-angle', `${angle}deg`);
-  strike.style.transform = `translateY(-50%) rotate(var(--strike-angle)) scaleX(0)`;
   board.appendChild(strike);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => strike.classList.add('drawn'));
+  });
 
   if (canAnimate()) {
     const gsap = gsapInstance();
@@ -215,15 +218,11 @@ export function animateWinningLine(cells, board) {
         { scale: 1 },
         { scale: 1.13, duration: 0.2, stagger: 0.06, yoyo: true, repeat: 1, ease: 'power1.inOut', clearProps: 'transform' },
         '<'
-      )
-      .to(strike, { '--strike-scale': 1, duration: 0.62, ease: 'power3.inOut' }, 0.12);
-  } else {
-    strike.style.setProperty('--strike-scale', '1');
+      );
   }
 
   createVictoryBurst(board, 24);
 }
-
 export function animateModalIn(modal) {
   if (!modal || !canAnimate()) return;
 
