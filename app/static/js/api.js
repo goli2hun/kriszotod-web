@@ -7,7 +7,13 @@ async function requestJson(url, options = {}, fallbackMessage = 'A kérés nem s
   const data = await readJson(response);
 
   if (!response.ok) {
-    throw new Error(data.detail || fallbackMessage);
+    const detail = data.detail;
+    const message = typeof detail === 'string'
+      ? detail
+      : Array.isArray(detail)
+        ? detail.map(item => item?.msg || JSON.stringify(item)).join(' • ')
+        : detail?.msg || fallbackMessage;
+    throw new Error(message);
   }
 
   return data;
