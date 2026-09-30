@@ -202,3 +202,14 @@ A lobby játékos-identitásai: **Krisz, Adri, Alíz**. BOT módban a BOT külö
 - A régi, szabályosan el nem engedett, de inaktív sessionök ezért nem foglalják 30 napig Krisz / Adri / Alíz identitását.
 - Valóban aktív másik session esetén a felhasználó megerősítéssel **átveheti az identitást ezen az eszközön**. Az átvétel a korábbi session játékosfoglalását elengedi, de magát a webes sessiont nem törli.
 - Az adatbázis `sessions.last_seen_at` mezővel bővült; az induláskori migráció automatikusan hozzáadja a meglévő SQLite adatbázishoz.
+
+
+## v0.9.21–v0.9.22 – Konfigurálható tábla és korai döntetlen
+
+- A tábla mérete központi `app/config.py` fájlból állítható, külön `BOARD_WIDTH` és `BOARD_HEIGHT` értékkel. Jelenlegi alapérték: **15×15**; a győzelmi hossz `WIN_LENGTH = 5`.
+- A backend, lépésvalidáció, győzelemvizsgálat, BOT/AI, frontend cellagenerálás, koordináták és CSS grid a konfigurált méretet használja.
+- Minden érvényes lépés után, ha nincs győztes, a backend ellenőrzi az összes `WIN_LENGTH` hosszú vízszintes, függőleges és átlós szakaszt.
+- Ha egyik játékosnak sem maradt olyan szakasz, amely kizárólag saját kövekből és üres mezőkből áll, a parti **azonnal döntetlennel lezárul**; nem szükséges megvárni a tábla megtelését.
+- A döntetlen eredménydialógusban **mindkét játékos profilképe** megjelenik egymás mellett, a fő eredmény pedig **DÖNTETLEN**.
+- A döntetlen magyarázó felirata: **NINCS TÖBB LEHETSÉGES ÖTÖS**.
+- Aktuális frontend asset-verzió: **v0.9.22**.
