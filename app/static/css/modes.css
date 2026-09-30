@@ -1,5 +1,5 @@
 .mode-view {
-  width: min(620px, calc(100vw - 32px));
+  width: min(900px, calc(100vw - 32px));
 }
 
 #modeView {
@@ -19,7 +19,7 @@
 }
 
 #modeView .mode-card {
-  width: min(620px, calc(100vw - 40px));
+  width: min(900px, calc(100vw - 40px));
 }
 
 .mode-card {
@@ -228,3 +228,19 @@ button.mode-choice:hover {
 @media (prefers-reduced-motion: reduce) {
   .waiting-spinner { animation-duration: 2s !important; }
 }
+
+.hall-of-fame { margin-top: 24px; padding: 18px 20px; border: 1px solid var(--button-border); border-radius: 20px; background: rgba(255,255,255,.55); box-shadow: var(--button-shadow); text-align: left; }
+.hof-heading { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.hof-heading h3 { margin:0; font-size:1.05rem; letter-spacing:.09em; }
+.hof-trophy { font-size:1.35rem; }
+.hof-table-wrap { overflow-x:auto; }
+.hof-table { width:100%; border-collapse:collapse; font-size:.78rem; }
+.hof-table th { padding:8px 10px; color:var(--muted); font-size:.67rem; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid var(--button-border); white-space:nowrap; }
+.hof-table td { padding:10px; border-bottom:1px solid var(--button-border); text-align:center; }
+.hof-table tbody tr:last-child td { border-bottom:0; }
+.hof-player { display:flex; align-items:center; gap:9px; min-width:110px; font-weight:900; text-align:left; }
+.hof-avatar { width:32px; height:32px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.8); box-shadow:0 3px 8px rgba(0,0,0,.12); }
+.hof-rank { font-weight:950; }
+.hof-rate { font-weight:950; }
+.hof-empty { color:var(--muted); text-align:center !important; }
+@media (max-height: 850px) { #modeView { overflow-y:auto; place-items:start center; } }
