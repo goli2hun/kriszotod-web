@@ -1,7 +1,13 @@
-export const BOARD_SIZE = 10;
+export let BOARD_WIDTH = 15;
+export let BOARD_HEIGHT = 15;
+
+export function setBoardSize(width, height) {
+  BOARD_WIDTH = width;
+  BOARD_HEIGHT = height;
+}
 
 export function makeEmptyBoard() {
-  return Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(0));
+  return Array.from({ length: BOARD_HEIGHT }, () => Array(BOARD_WIDTH).fill(0));
 }
 
 export function playerName(player) {
@@ -36,9 +42,9 @@ function collect(board, row, col, player, dr, dc) {
 
   while (
     r >= 0 &&
-    r < BOARD_SIZE &&
+    r < BOARD_HEIGHT &&
     c >= 0 &&
-    c < BOARD_SIZE &&
+    c < BOARD_WIDTH &&
     board[r][c] === player
   ) {
     cells.push([r, c]);
