@@ -43,7 +43,6 @@ const usernameInputEl = document.querySelector('#usernameInput');
 const passwordInputEl = document.querySelector('#passwordInput');
 const loginButtonEl = document.querySelector('#loginButton');
 const loginErrorEl = document.querySelector('#loginError');
-const currentUsernameEl = document.querySelector('#currentUsername');
 const modeUsernameEl = document.querySelector('#modeUsername');
 
 const identityChoicesEl = document.querySelector('#identityChoices');
@@ -72,7 +71,6 @@ const redPlayerPortraitEl = redPlayerCardEl.querySelector('.player-portrait');
 const bluePlayerNameEl = document.querySelector('#bluePlayerName');
 const bluePlayerRoleEl = document.querySelector('#bluePlayerRole');
 const bluePlayerPortraitEl = bluePlayerCardEl.querySelector('.player-portrait');
-const gameModeTextEl = document.querySelector('#gameModeText');
 const modalNewGameButton = document.querySelector('#modalNewGameButton');
 const modalLobbyButton = document.querySelector('#modalLobbyButton');
 
@@ -180,10 +178,6 @@ function updatePlayerCards() {
   } else {
     bluePlayerRoleEl.textContent = playerNumber === 2 ? 'Kék • Te' : 'Kék • Ellenfél';
   }
-
-  gameModeTextEl.textContent = gameMode === 'ai'
-    ? `BOT • ${difficultyLabel(gameDifficulty)}`
-    : 'KÉT JÁTÉKOS';
 }
 
 function updateStatus() {
@@ -533,7 +527,6 @@ async function enterGame(state) {
   loginViewEl.classList.add('hidden');
   modeViewEl.classList.add('hidden');
   gameViewEl.classList.remove('hidden');
-  currentUsernameEl.textContent = currentIdentity ? currentIdentity.toUpperCase() : (currentUsername || '—');
   locked = false;
   gameFinished = false;
   lastTurnPlayer = null;
