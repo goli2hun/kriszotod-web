@@ -754,6 +754,18 @@ h1 {
   width: 100%;
 }
 
+.draw-avatars {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin: 4px auto 14px;
+}
+
+.draw-avatar-frame {
+  margin: 0;
+}
+
 .winner-avatar-frame {
   width: 88px;
   height: 88px;
