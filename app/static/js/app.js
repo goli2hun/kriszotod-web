@@ -3,6 +3,7 @@ import {
   createGame,
   getCurrentGame,
   getGame,
+  getHallOfFame,
   getSession,
   finishGame,
   heartbeatPlayer,
@@ -44,6 +45,7 @@ const passwordInputEl = document.querySelector('#passwordInput');
 const loginButtonEl = document.querySelector('#loginButton');
 const loginErrorEl = document.querySelector('#loginError');
 const modeUsernameEl = document.querySelector('#modeUsername');
+const hallOfFameBodyEl = document.querySelector('#hallOfFameBody');
 
 const identityChoicesEl = document.querySelector('#identityChoices');
 const identityButtons = [...document.querySelectorAll('.identity-button')];
@@ -551,6 +553,28 @@ async function enterGame(state) {
   if (state.mode === 'pvp' && state.status === 'active') startPolling();
 }
 
+
+function hallOfFameName(player) {
+  return ({ krisz: 'Krisz', adri: 'Adri', aliz: 'Alíz', bot: 'BOT' })[player] || player;
+}
+
+function renderHallOfFame(rows) {
+  if (!hallOfFameBodyEl) return;
+  if (!rows?.length) { hallOfFameBodyEl.innerHTML = '<tr><td colspan="7" class="hof-empty">Még nincs befejezett parti.</td></tr>'; return; }
+  hallOfFameBodyEl.innerHTML = rows.map((row, index) => {
+    const medal = ['🥇', '🥈', '🥉'][index] || String(index + 1);
+    const name = hallOfFameName(row.player);
+    const avatar = profileImageFor(row.player, '/static/assets/portraits/player-red.svg?v=0.9.23');
+    return `<tr><td class="hof-rank">${medal}</td><td><div class="hof-player"><img class="hof-avatar" src="${avatar}" alt=""><span>${name}</span></div></td><td>${row.played}</td><td>${row.wins}</td><td>${row.losses}</td><td>${row.draws}</td><td class="hof-rate">${Number(row.win_rate).toFixed(1).replace('.', ',')}%</td></tr>`;
+  }).join('');
+}
+
+async function refreshHallOfFame() {
+  if (!hallOfFameBodyEl) return;
+  try { renderHallOfFame((await getHallOfFame()).players); }
+  catch { hallOfFameBodyEl.innerHTML = '<tr><td colspan="7" class="hof-empty">A statisztika most nem érhető el.</td></tr>'; }
+}
+
 function showMode(username, player = currentIdentity) {
   stopPolling(); clearGameOverTimer(); gameOverEl.classList.add('hidden'); gameViewEl.classList.add('hidden'); loginViewEl.classList.add('hidden'); modeViewEl.classList.remove('hidden'); waitingPanelEl.classList.add('hidden');
   modeUsernameEl.textContent = username || '—'; currentIdentity = player || null;
@@ -561,7 +585,7 @@ function showMode(username, player = currentIdentity) {
   changeIdentityButtonEl.classList.toggle('hidden', !currentIdentity);
   changeIdentityButtonEl.hidden = !currentIdentity;
   if (currentIdentity) humanOpponentNameEl.textContent = 'MÁSIK JÁTÉKOS ELLEN';
-  gameId=null; gameMode=null; currentStatus=null; playerNumber=null; gameFinished=false; lastTurnPlayer=null; setModeBusy(false); animateViewIn(modeViewEl);
+  gameId=null; gameMode=null; currentStatus=null; playerNumber=null; gameFinished=false; lastTurnPlayer=null; setModeBusy(false); animateViewIn(modeViewEl); refreshHallOfFame();
 }
 
 async function chooseIdentity(player) {
