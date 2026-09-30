@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ÖTÖDÖLŐ</title>
   <meta name="description" content="Modern webes Ötödölő játék" />
-  <link rel="stylesheet" href="/static/css/base.css?v=0.9.20" />
-  <link rel="stylesheet" href="/static/css/themes.css?v=0.9.20" />
-  <link rel="stylesheet" href="/static/css/modes.css?v=0.9.20" />
-  <link rel="stylesheet" href="/static/css/visual.css?v=0.9.20" />
+  <link rel="stylesheet" href="/static/css/base.css?v=0.9.21" />
+  <link rel="stylesheet" href="/static/css/themes.css?v=0.9.21" />
+  <link rel="stylesheet" href="/static/css/modes.css?v=0.9.21" />
+  <link rel="stylesheet" href="/static/css/visual.css?v=0.9.21" />
 </head>
 <body>
   <div class="ambient-lights" aria-hidden="true">
@@ -73,9 +73,9 @@
             <strong id="humanOpponentName">A MÁSIK JÁTÉKOS ELLEN</strong>
             <small>Megvárom, amíg belép</small>
             <span class="mode-matchup" aria-hidden="true">
-              <img class="mode-avatar" src="/static/assets/portraits/player-red.svg?v=0.9.20" alt="" />
+              <img class="mode-avatar" src="/static/assets/portraits/player-red.svg?v=0.9.21" alt="" />
               <span class="mode-vs">VS</span>
-              <img class="mode-avatar" src="/static/assets/portraits/player-blue.svg?v=0.9.20" alt="" />
+              <img class="mode-avatar" src="/static/assets/portraits/player-blue.svg?v=0.9.21" alt="" />
             </span>
           </span>
         </button>
@@ -87,7 +87,7 @@
               <strong>BOT ELLEN</strong>
               <small>Válassz nehézséget</small>
               <span class="mode-matchup" aria-hidden="true">
-                <img class="mode-avatar" src="/static/assets/portraits/player-red.svg?v=0.9.20" alt="" />
+                <img class="mode-avatar" src="/static/assets/portraits/player-red.svg?v=0.9.21" alt="" />
                 <span class="mode-vs">VS</span>
                 <span class="mode-bot-badge">🤖</span>
               </span>
@@ -132,7 +132,7 @@
     <section class="game-layout">
       <aside id="redPlayerCard" class="player-card player-red active">
         <div class="portrait-frame portrait-red">
-          <img class="player-portrait" src="/static/assets/portraits/player-red.svg?v=0.9.20" alt="Piros játékos" />
+          <img class="player-portrait" src="/static/assets/portraits/player-red.svg?v=0.9.21" alt="Piros játékos" />
         </div>
         <div class="player-copy">
           <span id="redPlayerName" class="player-label">PIROS</span>
@@ -144,7 +144,7 @@
         <div class="coordinates columns" id="columnLabels"></div>
         <div class="board-row">
           <div class="coordinates rows" id="rowLabels"></div>
-          <div id="board" class="board turn-red" aria-label="10x10 Ötödölő tábla"></div>
+          <div id="board" class="board turn-red" aria-label="15x15 Ötödölő tábla"></div>
         </div>
         <div id="statusPill" class="status-pill">
           <span id="statusDot" class="status-dot red"></span>
@@ -154,7 +154,7 @@
 
       <aside id="bluePlayerCard" class="player-card player-blue">
         <div class="portrait-frame portrait-blue">
-          <img class="player-portrait" src="/static/assets/portraits/player-blue.svg?v=0.9.20" alt="Kék játékos" />
+          <img class="player-portrait" src="/static/assets/portraits/player-blue.svg?v=0.9.21" alt="Kék játékos" />
         </div>
         <div class="player-copy">
           <span id="bluePlayerName" class="player-label">KÉK</span>
@@ -183,6 +183,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
-  <script type="module" src="/static/js/app.js?v=0.9.20"></script>
+  <script type="module" src="/static/js/app.js?v=0.9.21"></script>
 </body>
 </html>
