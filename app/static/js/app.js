@@ -35,6 +35,7 @@ import {
 } from './visual.js?v=0.9.2';
 
 const loginViewEl = document.querySelector('#loginView');
+const finishGameButton = document.querySelector('#finishGameButton');
 const modeViewEl = document.querySelector('#modeView');
 const gameViewEl = document.querySelector('#gameView');
 const loginFormEl = document.querySelector('#loginForm');
@@ -661,6 +662,26 @@ async function onLoginSubmit(event) {
   }
 }
 
+async function onFinishGame() {
+  if (!gameId) {
+    showMode(currentUsername, currentIdentity);
+    return;
+  }
+  finishGameButton.disabled = true;
+  try {
+    await finishGame(gameId);
+    stopPolling();
+    clearGameOverTimer();
+    gameOverEl.classList.add('hidden');
+    showMode(currentUsername, currentIdentity);
+  } catch (error) {
+    if (isAuthError(error)) showLogin();
+    else alert(error.message);
+  } finally {
+    finishGameButton.disabled = false;
+  }
+}
+
 async function onLogout() {
   stopPolling();
   stopHeartbeat();
@@ -837,6 +858,7 @@ pvpButtonEl.addEventListener('click', startPvpGame);
 aiButtonEl.addEventListener('click', startAiGame);
 cancelWaitingButtonEl.addEventListener('click', cancelWaiting);
 modeLogoutButtonEl.addEventListener('click', onLogout);
+finishGameButton.addEventListener('click', onFinishGame);
 difficultyButtons.forEach(button => {
   button.addEventListener('click', () => selectDifficulty(button.dataset.difficulty));
 });
