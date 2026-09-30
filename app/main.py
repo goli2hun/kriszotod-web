@@ -23,7 +23,7 @@ from .auth import (
 )
 from .db import connect, init_db
 from .config import BOARD_HEIGHT, BOARD_WIDTH
-from .game_logic import is_board_full, is_winning_move
+from .game_logic import is_board_full, is_winning_move, no_player_can_win
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
@@ -225,7 +225,7 @@ def make_move(game_id: int, move: MoveRequest, request: Request) -> dict:
         winner=_insert_move(conn,game_id,len(moves)+1,next_player,move.row,move.col,board)
         if winner:
             _finish_game(conn,game_id,winner); return _game_state(conn,game_id,player_name)
-        if is_board_full(board):
+        if is_board_full(board) or no_player_can_win(board):
             _finish_game(conn,game_id,None); return _game_state(conn,game_id,player_name)
         if game['mode']=='ai':
             conn.execute('UPDATE games SET next_player=2 WHERE id=?',(game_id,)); ai_move=choose_ai_move(board,2,1,game['difficulty'] or 'normal')
@@ -233,7 +233,7 @@ def make_move(game_id: int, move: MoveRequest, request: Request) -> dict:
                 _finish_game(conn,game_id,None); return _game_state(conn,game_id,player_name)
             ai_row,ai_col=ai_move; ai_winner=_insert_move(conn,game_id,len(moves)+2,2,ai_row,ai_col,board)
             if ai_winner: _finish_game(conn,game_id,2)
-            elif is_board_full(board): _finish_game(conn,game_id,None)
+            elif is_board_full(board) or no_player_can_win(board): _finish_game(conn,game_id,None)
             else: conn.execute('UPDATE games SET next_player=1 WHERE id=?',(game_id,))
         else: conn.execute('UPDATE games SET next_player=? WHERE id=?',(2 if next_player==1 else 1,game_id))
         return _game_state(conn,game_id,player_name)
