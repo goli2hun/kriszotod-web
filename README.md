@@ -14,7 +14,7 @@ A frontend szándékosan nem használ frameworköt. A játéklogika és az AI is
 
 ## Aktuális állapot
 
-Az aktuális **v0.9.18** a KriszGame mintájára egy közös webes belépést és külön lobby-játékosazonosságot használ.
+Az aktuális **v0.9.24** a KriszGame mintájára egy közös webes belépést és külön lobby-játékosazonosságot használ.
 
 Ellenőrzött teszteredmény:
 
@@ -29,7 +29,7 @@ A Windows alatt jelentkező SQLite temp-adatbázis zárolási hibát a központi
 
 ## Funkciók
 
-- 10×10 tábla
+- konfigurálható tábla, jelenleg 15×15 (`app/config.py`: `BOARD_WIDTH`, `BOARD_HEIGHT`)
 - 5 egymás mellett = győzelem
 - egy közös SQLite-alapú webes belépési account
 - lobbyban külön Krisz / Adri / Alíz játékos-identitás
@@ -56,6 +56,11 @@ A Windows alatt jelentkező SQLite temp-adatbázis zárolási hibát a központi
 - animált, az ötös irányát követő győzelmi áthúzás
 - kb. 2 másodperccel késleltetett eredménydialógus
 - nyertes játékos avatárja az eredménydialógusban
+- korai döntetlen-felismerés, ha egyik félnek sem maradt lehetséges ötöse
+- döntetlennél mindkét játékos profilképe az eredménydialógusban
+- lobby Hall of Fame: Krisz / Adri / Alíz / BOT rangsor, játszott, győzelem, vereség, döntetlen és győzelmi arány
+- kézzel lezárt (`abandoned`) partik nem számítanak bele a Hall of Fame statisztikába
+- lobby identitásválasztás valódi profilképekkel: Krisz kék, Adri piros, Alíz zöld kerettel
 
 Telepítéshez lásd: `INSTALL.md`.
 
@@ -181,10 +186,10 @@ PixiJS továbbra sincs a projektben; csak akkor kerülne be, ha egy későbbi k�
 - A login az `assets/images/loginscreen.png` hátteret használja; az `assets/` könyvtárat a FastAPI `/assets` útvonalon szolgálja ki.
 - A login nézet teljes képernyős.
 - A lobby visszafogott háttérgrafikát és áttetszőbb panelt kapott; a jelenlegi lobby elrendezést stabilnak tekintjük.
-- A játéknézet teljes képernyős, a 10×10-es tábla a viewport magasságához igazodik.
+- A játéknézet teljes képernyős, a konfigurált (jelenleg 15×15-ös) tábla a viewporthoz igazodik.
 - A Midnight / Ivory témaváltó megszűnt. Most kizárólag a világos **Ivory** profil használatos; a korábbi témaérték törlődik a localStorage-ból.
 - A hangkapcsoló megmaradt.
-- A frontend asset cache-busting verziója jelenleg **v0.9.18**.
+- A frontend asset cache-busting verziója jelenleg **v0.9.24**.
 
 ### Jelenlegi képernyőfolyam
 
@@ -195,7 +200,7 @@ A lobby játékos-identitásai: **Krisz, Adri, Alíz**. BOT módban a BOT külö
 
 ## v0.9.17–v0.9.18 – Aktív játékos és session-javítások
 
-- A játék közbeni **JÁTÉK BEFEJEZÉSE** gomb kikerült a felületről; a hozzá tartozó kliensoldali kezelő is megszűnt.
+- A játék közbeni **JÁTÉK VÉGE** gomb a jobb felső sarokban lezárja az aktuális partit és visszavisz a lobbyba.
 - A soron következő játékost most az avatar vastag, játékosszínű kerete és finom kiemelése jelzi; a keret automatikusan vált a körrel.
 - A login mezőinek **FELHASZNÁLÓNÉV** és **JELSZÓ** felirata fehér, enyhe árnyékkal, hogy az áttetsző panelen mindig olvasható legyen.
 - A lobby-identitások foglalása heartbeat-alapú. A böngésző 20 másodpercenként életjelet küld, és egy másik session csak akkor blokkolja az identitást, ha az utolsó aktivitása 60 másodpercen belüli.
@@ -213,3 +218,49 @@ A lobby játékos-identitásai: **Krisz, Adri, Alíz**. BOT módban a BOT külö
 - A döntetlen eredménydialógusban **mindkét játékos profilképe** megjelenik egymás mellett, a fő eredmény pedig **DÖNTETLEN**.
 - A döntetlen magyarázó felirata: **NINCS TÖBB LEHETSÉGES ÖTÖS**.
 - Aktuális frontend asset-verzió: **v0.9.22**.
+
+
+## v0.9.23–v0.9.24 – Hall of Fame és profilképes lobby
+
+### Hall of Fame
+
+A lobby alján élő ranglista jelenik meg **Krisz, Adri, Alíz és BOT** részvételével. A `GET /api/hall-of-fame` végpont a SQLite-ban tárolt befejezett partikból számolja a statisztikát.
+
+Megjelenített adatok:
+
+- helyezés; az első három helyezett éremjelölést kap;
+- profilkép és játékosnév;
+- játszott partik száma;
+- győzelmek;
+- vereségek;
+- döntetlenek;
+- győzelmi százalék.
+
+A sorrend elsődlegesen a győzelmek száma, majd a győzelmi arány és a játszott partik száma alapján készül. A kézzel, **JÁTÉK VÉGE** gombbal megszakított partik `finish_reason = 'abandoned'` jelölést kapnak, ezért nem kerülnek bele a Hall of Fame-ba. A rendes győzelem `win`, a döntetlen `draw` befejezési okkal tárolódik. A `games.finish_reason` oszlopot az induláskori SQLite migráció automatikusan létrehozza.
+
+### Hall of Fame nullázása
+
+Tiszta statisztikához:
+
+```bash
+cd /opt/kriszotod
+python3 scripts/reset_hall_of_fame.py
+```
+
+A script megerősítést kér, majd törli a **befejezett játékokat és azok lépéseit**. A felhasználókat, sessionöket és az esetlegesen futó/várakozó játékokat nem törli. Nem interaktív futtatás:
+
+```bash
+python3 scripts/reset_hall_of_fame.py --yes
+```
+
+### Profilképes identitásválasztás
+
+A lobby korábbi nagy, színes pöttyös játékoskártyái helyett Krisz, Adri és Alíz **egy sorban, kör alakú valódi profilképpel** választható. A keretszínek követik a játékosok vizuális azonosítását:
+
+- **Krisz:** kék;
+- **Adri:** piros;
+- **Alíz:** zöld.
+
+A vastag körkeret az aktív játékos játék közbeni kiemelésének stílusát követi. A választók hover-effektet és kisebb képernyőre külön méretezést kaptak.
+
+Aktuális frontend asset-verzió: **v0.9.24**.
