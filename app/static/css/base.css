@@ -395,6 +395,13 @@ h1 {
   line-height: 1;
 }
 
+.game-finish-button {
+  min-width: 150px;
+  padding: 11px 20px;
+  font-size: .78rem;
+  letter-spacing: .08em;
+}
+
 .session-chip {
   display: inline-flex;
   align-items: center;
