@@ -78,3 +78,7 @@ export async function sendMove(gameId, row, col) {
     body: JSON.stringify({ row, col })
   }, 'A lépés nem sikerült.');
 }
+
+export async function getHallOfFame() {
+  return requestJson('/api/hall-of-fame', {}, 'Nem sikerült lekérni a Hall of Fame adatokat.');
+}
