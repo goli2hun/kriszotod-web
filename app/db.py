@@ -61,7 +61,8 @@ def init_db() -> None:
                 status TEXT NOT NULL DEFAULT 'waiting',
                 next_player INTEGER,
                 player1_name TEXT,
-                player2_name TEXT
+                player2_name TEXT,
+                finish_reason TEXT
             );
 
             CREATE TABLE IF NOT EXISTS moves (
@@ -87,6 +88,7 @@ def init_db() -> None:
         _ensure_column(conn, "games", "next_player", "INTEGER")
         _ensure_column(conn, "games", "player1_name", "TEXT")
         _ensure_column(conn, "games", "player2_name", "TEXT")
+        _ensure_column(conn, "games", "finish_reason", "TEXT")
         _ensure_column(conn, "sessions", "player_name", "TEXT")
         _ensure_column(conn, "sessions", "last_seen_at", "INTEGER")
 
