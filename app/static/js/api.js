@@ -35,8 +35,12 @@ export async function logout() {
   return requestJson('/api/auth/logout', { method: 'POST' }, 'A kijelentkezés nem sikerült.');
 }
 
-export async function selectPlayer(player) {
-  return requestJson('/api/lobby/player', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ player }) }, 'Nem sikerült kiválasztani a játékost.');
+export async function selectPlayer(player, force = false) {
+  return requestJson('/api/lobby/player', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ player, force }) }, 'Nem sikerült kiválasztani a játékost.');
+}
+
+export async function heartbeatPlayer() {
+  return requestJson('/api/lobby/heartbeat', { method: 'POST' }, 'Nem sikerült frissíteni a játékos aktivitását.');
 }
 
 export async function releasePlayer() {
