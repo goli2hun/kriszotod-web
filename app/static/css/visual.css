@@ -95,6 +95,23 @@
 .player-red.active::after { color: var(--red); }
 .player-blue.active::after { color: var(--blue); }
 
+.player-card .portrait-frame {
+  border-width: 2px;
+  transition: border-color .2s ease, border-width .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.player-red.active .portrait-frame {
+  border: 5px solid var(--red);
+  box-shadow: 0 0 0 3px rgba(255, 75, 92, .12), 0 12px 28px rgba(255, 75, 92, .22);
+  transform: scale(1.035);
+}
+
+.player-blue.active .portrait-frame {
+  border: 5px solid var(--blue);
+  box-shadow: 0 0 0 3px rgba(63, 145, 255, .12), 0 12px 28px rgba(63, 145, 255, .22);
+  transform: scale(1.035);
+}
+
 .player-card.thinking .portrait-frame {
   box-shadow: 0 0 0 3px rgba(63,145,255,.1), 0 0 30px rgba(63,145,255,.26), 0 16px 34px rgba(42,103,213,.2);
 }
