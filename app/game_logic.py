@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-BOARD_SIZE = 10
-WIN_LENGTH = 5
+from .config import BOARD_HEIGHT, BOARD_WIDTH, WIN_LENGTH
 
 
 def is_winning_move(board: list[list[int]], row: int, col: int, player: int) -> bool:
@@ -28,7 +27,7 @@ def _count_one_way(
 ) -> int:
     count = 0
     r, c = row + dr, col + dc
-    while 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
+    while 0 <= r < BOARD_HEIGHT and 0 <= c < BOARD_WIDTH and board[r][c] == player:
         count += 1
         r += dr
         c += dc
