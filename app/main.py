@@ -19,6 +19,7 @@ from .auth import (
     verify_password,
     claim_player,
     release_player,
+    heartbeat_player,
 )
 from .db import connect, init_db
 from .game_logic import BOARD_SIZE, is_board_full, is_winning_move
@@ -39,6 +40,7 @@ class LoginRequest(BaseModel):
 
 class PlayerSelectRequest(BaseModel):
     player: Literal['krisz', 'adri', 'aliz']
+    force: bool = False
 
 
 class GameCreateRequest(BaseModel):
@@ -122,8 +124,15 @@ def auth_logout(request: Request, response: Response) -> dict[str, str]:
 @app.post('/api/lobby/player')
 def select_lobby_player(payload: PlayerSelectRequest, request: Request) -> dict:
     require_user(request)
-    claim_player(request.cookies.get(COOKIE_NAME), payload.player)
+    claim_player(request.cookies.get(COOKIE_NAME), payload.player, payload.force)
     return {'ok': True, 'player': payload.player}
+
+
+@app.post('/api/lobby/heartbeat')
+def lobby_heartbeat(request: Request) -> dict:
+    require_user(request)
+    heartbeat_player(request.cookies.get(COOKIE_NAME))
+    return {'ok': True}
 
 
 @app.post('/api/lobby/release')
