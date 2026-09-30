@@ -82,6 +82,9 @@ const gameOverEl = document.querySelector('#gameOver');
 const winnerTextEl = document.querySelector('#winnerText');
 const winnerAvatarFrameEl = document.querySelector('#winnerAvatarFrame');
 const winnerAvatarEl = document.querySelector('#winnerAvatar');
+const drawAvatarsEl = document.querySelector('#drawAvatars');
+const drawAvatarOneEl = document.querySelector('#drawAvatarOne');
+const drawAvatarTwoEl = document.querySelector('#drawAvatarTwo');
 const winnerDotEl = document.querySelector('#winnerDot');
 const winnerSubtitleEl = document.querySelector('#winnerSubtitle');
 
@@ -310,6 +313,7 @@ function showGameResult(winner) {
     winnerAvatarEl.src = profileImageFor(playerDisplayName(winner), winner === 1 ? '/static/assets/portraits/player-red.svg?v=0.9.9' : '/static/assets/portraits/player-blue.svg?v=0.9.9');
     winnerAvatarEl.alt = `${name} profilképe`;
     winnerAvatarFrameEl.classList.remove('hidden');
+    drawAvatarsEl.classList.add('hidden');
     winnerDotEl.classList.remove('hidden');
     winnerDotEl.classList.toggle('red', isRed);
     winnerDotEl.classList.toggle('blue', !isRed);
@@ -319,8 +323,13 @@ function showGameResult(winner) {
     statusTextEl.textContent = 'DÖNTETLEN';
     winnerTextEl.textContent = 'DÖNTETLEN';
     winnerAvatarFrameEl.classList.add('hidden');
+    drawAvatarOneEl.src = profileImageFor(player1Name, '/static/assets/portraits/player-red.svg?v=0.9.9');
+    drawAvatarOneEl.alt = `${player1Name} profilképe`;
+    drawAvatarTwoEl.src = profileImageFor(player2Name, '/static/assets/portraits/player-blue.svg?v=0.9.9');
+    drawAvatarTwoEl.alt = `${player2Name} profilképe`;
+    drawAvatarsEl.classList.remove('hidden');
     winnerDotEl.classList.add('hidden');
-    winnerSubtitleEl.textContent = 'BETELT A TÁBLA';
+    winnerSubtitleEl.textContent = 'NINCS TÖBB LEHETSÉGES ÖTÖS';
   }
   clearGameOverTimer();
   gameOverTimer = window.setTimeout(() => {
