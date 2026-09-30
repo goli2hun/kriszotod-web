@@ -73,7 +73,6 @@ const bluePlayerNameEl = document.querySelector('#bluePlayerName');
 const bluePlayerRoleEl = document.querySelector('#bluePlayerRole');
 const bluePlayerPortraitEl = bluePlayerCardEl.querySelector('.player-portrait');
 const gameModeTextEl = document.querySelector('#gameModeText');
-const gameHintEl = document.querySelector('#gameHint');
 const modalNewGameButton = document.querySelector('#modalNewGameButton');
 const modalLobbyButton = document.querySelector('#modalLobbyButton');
 
@@ -211,16 +210,6 @@ function updateStatus() {
     lastTurnPlayer = currentPlayer;
   }
 
-  if (gameMode === 'ai') {
-    gameHintEl.textContent = myTurn
-      ? `Te következel • Bot nehézség: ${difficultyLabel(gameDifficulty)}`
-      : 'A bot gondolkodik…';
-  } else {
-    gameHintEl.textContent = myTurn
-      ? 'Te következel.'
-      : `Várakozás ${playerDisplayName(currentPlayer)} lépésére…`;
-  }
-
 }
 
 function showBotThinking() {
@@ -233,7 +222,6 @@ function showBotThinking() {
   redPlayerCardEl.classList.remove('active');
   bluePlayerCardEl.classList.add('active');
   setBotThinkingVisual(true, statusPillEl, bluePlayerCardEl);
-  gameHintEl.textContent = 'A bot gondolkodik…';
 }
 
 function renderPiece(cell, player, animate = true) {
@@ -342,8 +330,6 @@ function showGameResult(winner) {
     winnerDotEl.classList.add('hidden');
     winnerSubtitleEl.textContent = 'BETELT A TÁBLA';
   }
-
-  gameHintEl.textContent = 'A parti véget ért.';
   clearGameOverTimer();
   gameOverTimer = window.setTimeout(() => {
     gameOverEl.classList.remove('hidden');
