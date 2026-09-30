@@ -14,7 +14,7 @@ A frontend szándékosan nem használ frameworköt. A játéklogika és az AI is
 
 ## Aktuális állapot
 
-Az aktuális **v0.9.16** a KriszGame mintájára egy közös webes belépést és külön lobby-játékosazonosságot használ.
+Az aktuális **v0.9.18** a KriszGame mintájára egy közös webes belépést és külön lobby-játékosazonosságot használ.
 
 Ellenőrzött teszteredmény:
 
@@ -184,10 +184,21 @@ PixiJS továbbra sincs a projektben; csak akkor kerülne be, ha egy későbbi k�
 - A játéknézet teljes képernyős, a 10×10-es tábla a viewport magasságához igazodik.
 - A Midnight / Ivory témaváltó megszűnt. Most kizárólag a világos **Ivory** profil használatos; a korábbi témaérték törlődik a localStorage-ból.
 - A hangkapcsoló megmaradt.
-- A frontend asset cache-busting verziója jelenleg **v0.9.16**.
+- A frontend asset cache-busting verziója jelenleg **v0.9.18**.
 
 ### Jelenlegi képernyőfolyam
 
 `Login → Lobby / játékos-identitás → PvP vagy BOT → Játék → győzelmi animáció → eredménydialógus → Új játék vagy Lobby`
 
 A lobby játékos-identitásai: **Krisz, Adri, Alíz**. BOT módban a BOT külön cicás avatárt használ.
+
+
+## v0.9.17–v0.9.18 – Aktív játékos és session-javítások
+
+- A játék közbeni **JÁTÉK BEFEJEZÉSE** gomb kikerült a felületről; a hozzá tartozó kliensoldali kezelő is megszűnt.
+- A soron következő játékost most az avatar vastag, játékosszínű kerete és finom kiemelése jelzi; a keret automatikusan vált a körrel.
+- A login mezőinek **FELHASZNÁLÓNÉV** és **JELSZÓ** felirata fehér, enyhe árnyékkal, hogy az áttetsző panelen mindig olvasható legyen.
+- A lobby-identitások foglalása heartbeat-alapú. A böngésző 20 másodpercenként életjelet küld, és egy másik session csak akkor blokkolja az identitást, ha az utolsó aktivitása 60 másodpercen belüli.
+- A régi, szabályosan el nem engedett, de inaktív sessionök ezért nem foglalják 30 napig Krisz / Adri / Alíz identitását.
+- Valóban aktív másik session esetén a felhasználó megerősítéssel **átveheti az identitást ezen az eszközön**. Az átvétel a korábbi session játékosfoglalását elengedi, de magát a webes sessiont nem törli.
+- Az adatbázis `sessions.last_seen_at` mezővel bővült; az induláskori migráció automatikusan hozzáadja a meglévő SQLite adatbázishoz.
