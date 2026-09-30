@@ -3,7 +3,8 @@ from __future__ import annotations
 import random
 from collections.abc import Sequence
 
-from .game_logic import BOARD_SIZE, is_winning_move
+from .config import BOARD_HEIGHT, BOARD_WIDTH
+from .game_logic import is_winning_move
 
 Difficulty = str
 Move = tuple[int, int]
@@ -103,13 +104,15 @@ def _rank_moves(
 def _candidate_moves(board: list[list[int]], radius: int = 2) -> list[Move]:
     occupied = [
         (r, c)
-        for r in range(BOARD_SIZE)
-        for c in range(BOARD_SIZE)
+        for r in range(BOARD_HEIGHT)
+        for c in range(BOARD_HEIGHT)
         if board[r][c] != 0
     ]
 
     if not occupied:
-        return [(4, 4), (4, 5), (5, 4), (5, 5)]
+        center_r = (BOARD_HEIGHT - 1) // 2
+        center_c = (BOARD_WIDTH - 1) // 2
+        return [(center_r, center_c)]
 
     candidates: set[Move] = set()
     for row, col in occupied:
@@ -117,8 +120,8 @@ def _candidate_moves(board: list[list[int]], radius: int = 2) -> list[Move]:
             for dc in range(-radius, radius + 1):
                 r, c = row + dr, col + dc
                 if (
-                    0 <= r < BOARD_SIZE
-                    and 0 <= c < BOARD_SIZE
+                    0 <= r < BOARD_HEIGHT
+                    and 0 <= c < BOARD_WIDTH
                     and board[r][c] == 0
                 ):
                     candidates.add((r, c))
@@ -126,8 +129,8 @@ def _candidate_moves(board: list[list[int]], radius: int = 2) -> list[Move]:
     if not candidates:
         candidates = {
             (r, c)
-            for r in range(BOARD_SIZE)
-            for c in range(BOARD_SIZE)
+            for r in range(BOARD_HEIGHT)
+            for c in range(BOARD_HEIGHT)
             if board[r][c] == 0
         }
 
@@ -167,11 +170,11 @@ def _walk(
 ) -> tuple[int, bool]:
     count = 0
     r, c = row + dr, col + dc
-    while 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
+    while 0 <= r < BOARD_HEIGHT and 0 <= c < BOARD_WIDTH and board[r][c] == player:
         count += 1
         r += dr
         c += dc
-    is_open = 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == 0
+    is_open = 0 <= r < BOARD_HEIGHT and 0 <= c < BOARD_WIDTH and board[r][c] == 0
     return count, is_open
 
 
@@ -188,8 +191,9 @@ def _line_value(count: int, open_ends: int) -> float:
 
 
 def _center_bonus(row: int, col: int) -> float:
-    center = (BOARD_SIZE - 1) / 2
-    distance = abs(row - center) + abs(col - center)
+    center_row = (BOARD_HEIGHT - 1) / 2
+    center_col = (BOARD_WIDTH - 1) / 2
+    distance = abs(row - center_row) + abs(col - center_col)
     return max(0.0, 22.0 - distance * 2.4)
 
 
