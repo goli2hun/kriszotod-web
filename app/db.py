@@ -44,6 +44,7 @@ def init_db() -> None:
                 created_at INTEGER NOT NULL,
                 expires_at INTEGER NOT NULL,
                 player_name TEXT,
+                last_seen_at INTEGER,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
 
@@ -87,6 +88,7 @@ def init_db() -> None:
         _ensure_column(conn, "games", "player1_name", "TEXT")
         _ensure_column(conn, "games", "player2_name", "TEXT")
         _ensure_column(conn, "sessions", "player_name", "TEXT")
+        _ensure_column(conn, "sessions", "last_seen_at", "INTEGER")
 
         conn.execute(
             """
