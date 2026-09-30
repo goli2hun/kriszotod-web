@@ -12,6 +12,7 @@ from .db import connect
 COOKIE_NAME = "otodolo_session"
 SESSION_MAX_AGE = 60 * 60 * 24 * 30
 PBKDF2_ITERATIONS = 240_000
+PLAYER_ACTIVE_TTL = 60
 
 
 def hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
@@ -40,10 +41,10 @@ def create_session(user_id: int) -> str:
         conn.execute("DELETE FROM sessions WHERE expires_at <= ?", (now,))
         conn.execute(
             """
-            INSERT INTO sessions(token_hash, user_id, created_at, expires_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO sessions(token_hash, user_id, created_at, expires_at, last_seen_at)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (token_hash, user_id, now, expires_at),
+            (token_hash, user_id, now, expires_at, now),
         )
 
     return token
@@ -94,7 +95,15 @@ def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-def claim_player(token: str | None, player_name: str) -> None:
+def heartbeat_player(token: str | None) -> None:
+    if not token:
+        raise HTTPException(status_code=401, detail='Bejelentkezés szükséges.')
+    now = int(time.time())
+    with connect() as conn:
+        conn.execute('UPDATE sessions SET last_seen_at = ? WHERE token_hash = ? AND expires_at > ?', (now, _hash_token(token), now))
+
+
+def claim_player(token: str | None, player_name: str, force: bool = False) -> None:
     if player_name not in ('krisz', 'adri', 'aliz'):
         raise HTTPException(status_code=422, detail='Ismeretlen játékos.')
     if not token:
@@ -106,10 +115,13 @@ def claim_player(token: str | None, player_name: str) -> None:
         current = conn.execute('SELECT player_name FROM sessions WHERE token_hash = ? AND expires_at > ?', (token_hash, now)).fetchone()
         if current is None:
             raise HTTPException(status_code=401, detail='Bejelentkezés szükséges.')
-        occupied = conn.execute("SELECT 1 FROM sessions WHERE player_name = ? AND token_hash <> ? AND expires_at > ? LIMIT 1", (player_name, token_hash, now)).fetchone()
-        if occupied is not None:
+        active_after = now - PLAYER_ACTIVE_TTL
+        occupied = conn.execute("SELECT token_hash FROM sessions WHERE player_name = ? AND token_hash <> ? AND expires_at > ? AND COALESCE(last_seen_at, created_at) > ? LIMIT 1", (player_name, token_hash, now, active_after)).fetchone()
+        if occupied is not None and not force:
             raise HTTPException(status_code=409, detail=f'{player_name.title()} már egy másik eszközön aktív.')
-        conn.execute('UPDATE sessions SET player_name = ? WHERE token_hash = ?', (player_name, token_hash))
+        if force:
+            conn.execute('UPDATE sessions SET player_name = NULL WHERE player_name = ? AND token_hash <> ?', (player_name, token_hash))
+        conn.execute('UPDATE sessions SET player_name = ?, last_seen_at = ? WHERE token_hash = ?', (player_name, now, token_hash))
 
 
 def release_player(token: str | None) -> None:
