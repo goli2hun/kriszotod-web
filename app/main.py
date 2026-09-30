@@ -151,6 +151,34 @@ def _identity(request: Request):
     return user, str(player_name)
 
 
+@app.get('/api/hall-of-fame')
+def hall_of_fame(request: Request) -> dict:
+    require_user(request)
+    players = ('krisz', 'adri', 'aliz', 'bot')
+    stats = {name: {'player': name, 'played': 0, 'wins': 0, 'losses': 0, 'draws': 0} for name in players}
+    with connect() as conn:
+        games = conn.execute("SELECT player1_name, player2_name, winner FROM games WHERE status='finished' AND COALESCE(finish_reason, 'draw') <> 'abandoned' AND player1_name IS NOT NULL AND player2_name IS NOT NULL").fetchall()
+    for game in games:
+        p1 = str(game['player1_name']).lower()
+        p2 = str(game['player2_name']).lower()
+        if p1 not in stats or p2 not in stats:
+            continue
+        stats[p1]['played'] += 1
+        stats[p2]['played'] += 1
+        winner = game['winner']
+        if winner == 1:
+            stats[p1]['wins'] += 1; stats[p2]['losses'] += 1
+        elif winner == 2:
+            stats[p2]['wins'] += 1; stats[p1]['losses'] += 1
+        else:
+            stats[p1]['draws'] += 1; stats[p2]['draws'] += 1
+    rows = list(stats.values())
+    for row in rows:
+        row['win_rate'] = round(row['wins'] * 100 / row['played'], 1) if row['played'] else 0.0
+    rows.sort(key=lambda row: (-row['wins'], -row['win_rate'], -row['played'], row['player']))
+    return {'players': rows}
+
+
 @app.post('/api/games')
 def create_game(payload: GameCreateRequest, request: Request) -> dict:
     user, player_name = _identity(request)
@@ -205,7 +233,7 @@ def finish_game(game_id: int, request: Request) -> dict[str, str]:
         game = _get_game_row_for_player(conn, game_id, player_name)
         if game['status'] not in ('waiting', 'active'):
             return {'status': 'finished'}
-        _finish_game(conn, game_id, None)
+        _finish_game(conn, game_id, None, 'abandoned')
     return {'status': 'finished'}
 
 
@@ -224,16 +252,16 @@ def make_move(game_id: int, move: MoveRequest, request: Request) -> dict:
         if board[move.row][move.col]!=0: raise HTTPException(status_code=409,detail='Cell already occupied')
         winner=_insert_move(conn,game_id,len(moves)+1,next_player,move.row,move.col,board)
         if winner:
-            _finish_game(conn,game_id,winner); return _game_state(conn,game_id,player_name)
+            _finish_game(conn,game_id,winner,'win'); return _game_state(conn,game_id,player_name)
         if is_board_full(board) or no_player_can_win(board):
-            _finish_game(conn,game_id,None); return _game_state(conn,game_id,player_name)
+            _finish_game(conn,game_id,None,'draw'); return _game_state(conn,game_id,player_name)
         if game['mode']=='ai':
             conn.execute('UPDATE games SET next_player=2 WHERE id=?',(game_id,)); ai_move=choose_ai_move(board,2,1,game['difficulty'] or 'normal')
             if ai_move is None:
-                _finish_game(conn,game_id,None); return _game_state(conn,game_id,player_name)
+                _finish_game(conn,game_id,None,'draw'); return _game_state(conn,game_id,player_name)
             ai_row,ai_col=ai_move; ai_winner=_insert_move(conn,game_id,len(moves)+2,2,ai_row,ai_col,board)
-            if ai_winner: _finish_game(conn,game_id,2)
-            elif is_board_full(board) or no_player_can_win(board): _finish_game(conn,game_id,None)
+            if ai_winner: _finish_game(conn,game_id,2,'win')
+            elif is_board_full(board) or no_player_can_win(board): _finish_game(conn,game_id,None,'draw')
             else: conn.execute('UPDATE games SET next_player=1 WHERE id=?',(game_id,))
         else: conn.execute('UPDATE games SET next_player=? WHERE id=?',(2 if next_player==1 else 1,game_id))
         return _game_state(conn,game_id,player_name)
@@ -290,17 +318,18 @@ def _insert_move(
     return player if is_winning_move(board, row, col, player) else None
 
 
-def _finish_game(conn, game_id: int, winner: int | None) -> None:
+def _finish_game(conn, game_id: int, winner: int | None, reason: str = 'draw') -> None:
     conn.execute(
         """
         UPDATE games
         SET status = 'finished',
             winner = ?,
+            finish_reason = ?,
             next_player = NULL,
             finished_at = CURRENT_TIMESTAMP
         WHERE id = ?
         """,
-        (winner, game_id),
+        (winner, reason, game_id),
     )
 
 
