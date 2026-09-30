@@ -5,6 +5,7 @@ import {
   getGame,
   getSession,
   finishGame,
+  heartbeatPlayer,
   login,
   logout,
   selectPlayer,
@@ -88,6 +89,7 @@ const winnerSubtitleEl = document.querySelector('#winnerSubtitle');
 
 const POLL_MS = 850;
 const BOT_THINK_MS = 520;
+const HEARTBEAT_MS = 20_000;
 
 let board = makeEmptyBoard();
 let currentPlayer = 1;
@@ -106,6 +108,7 @@ let locked = false;
 let gameFinished = false;
 let gameOverTimer = null;
 let pollTimer = null;
+let heartbeatTimer = null;
 let pollBusy = false;
 let lastTurnPlayer = null;
 
@@ -568,10 +571,31 @@ function showMode(username, player = currentIdentity) {
 }
 
 async function chooseIdentity(player) {
-  try { const result=await selectPlayer(player); currentIdentity=result.player; showMode(currentUsername,currentIdentity); } catch(error) { handleModeError(error); }
+  try {
+    const result = await selectPlayer(player);
+    currentIdentity = result.player;
+    startHeartbeat();
+    showMode(currentUsername, currentIdentity);
+  } catch (error) {
+    if (error.message.includes('másik eszközön aktív')) {
+      const takeOver = window.confirm(`${error.message}\n\nÁtveszed ${playerDisplayName(player)} identitását ezen az eszközön?`);
+      if (!takeOver) return;
+      try {
+        const result = await selectPlayer(player, true);
+        currentIdentity = result.player;
+        startHeartbeat();
+        showMode(currentUsername, currentIdentity);
+      } catch (takeoverError) {
+        handleModeError(takeoverError);
+      }
+      return;
+    }
+    handleModeError(error);
+  }
 }
 
 async function changeIdentity() {
+  stopHeartbeat();
   try { await releasePlayer(); } catch {}
   currentIdentity=null; showMode(currentUsername,null);
 }
@@ -639,6 +663,7 @@ async function onLoginSubmit(event) {
 
 async function onLogout() {
   stopPolling();
+  stopHeartbeat();
 
   if (currentStatus === 'waiting' && gameId) {
     try {
@@ -657,6 +682,20 @@ async function onLogout() {
   currentUsername = null;
   currentIdentity = null;
   showLogin();
+}
+
+function startHeartbeat() {
+  stopHeartbeat();
+  if (!currentIdentity) return;
+  heartbeatPlayer().catch(() => {});
+  heartbeatTimer = window.setInterval(() => heartbeatPlayer().catch(() => {}), HEARTBEAT_MS);
+}
+
+function stopHeartbeat() {
+  if (heartbeatTimer !== null) {
+    window.clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
 }
 
 function startPolling() {
@@ -775,6 +814,7 @@ async function initialize() {
     if (session.authenticated) {
       currentUsername = session.username;
       currentIdentity = session.player || null;
+      if (currentIdentity) startHeartbeat();
       await resumeOrShowMode();
     } else {
       showLogin();
