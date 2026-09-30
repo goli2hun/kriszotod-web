@@ -21,7 +21,7 @@ import {
   toggleSound,
   unlockAudio
 } from './audio.js?v=0.9.2';
-import { BOARD_SIZE, findWinningLine, makeEmptyBoard, playerName } from './game.js?v=0.9.2';
+import { BOARD_WIDTH, BOARD_HEIGHT, setBoardSize, findWinningLine, makeEmptyBoard, playerName } from './game.js?v=0.9.21';
 import {
   animateDifficulty,
   animateModalIn,
@@ -114,17 +114,15 @@ function buildCoordinates() {
   columnLabelsEl.innerHTML = '';
   rowLabelsEl.innerHTML = '';
 
-  for (let i = 0; i < BOARD_SIZE; i++) {
-    columnLabelsEl.insertAdjacentHTML('beforeend', `<span>${String.fromCharCode(65 + i)}</span>`);
-    rowLabelsEl.insertAdjacentHTML('beforeend', `<span>${i + 1}</span>`);
-  }
+  for (let i = 0; i < BOARD_WIDTH; i++) columnLabelsEl.insertAdjacentHTML('beforeend', `<span>${String.fromCharCode(65 + i)}</span>`);
+  for (let i = 0; i < BOARD_HEIGHT; i++) rowLabelsEl.insertAdjacentHTML('beforeend', `<span>${i + 1}</span>`);
 }
 
 function buildBoard() {
   boardEl.innerHTML = '';
 
-  for (let row = 0; row < BOARD_SIZE; row++) {
-    for (let col = 0; col < BOARD_SIZE; col++) {
+  for (let row = 0; row < BOARD_HEIGHT; row++) {
+    for (let col = 0; col < BOARD_WIDTH; col++) {
       const cell = document.createElement('button');
       cell.type = 'button';
       cell.className = 'cell';
@@ -336,6 +334,13 @@ async function applyGameState(state, { initial = false, animateNew = true } = {}
   gameId = state.game_id;
   gameMode = state.mode;
   gameDifficulty = state.difficulty || 'normal';
+  setBoardSize(Number(state.board_width || 15), Number(state.board_height || 15));
+  boardEl.style.setProperty('--board-width', BOARD_WIDTH);
+  boardEl.style.setProperty('--board-height', BOARD_HEIGHT);
+  columnLabelsEl.style.setProperty('--board-width', BOARD_WIDTH);
+  rowLabelsEl.style.setProperty('--board-height', BOARD_HEIGHT);
+  boardEl.setAttribute('aria-label', `${BOARD_WIDTH}x${BOARD_HEIGHT} Ötödölő tábla`);
+  buildCoordinates();
   playerNumber = state.player_number;
   player1Name = state.player1_name;
   player2Name = state.player2_name;
