@@ -22,7 +22,8 @@ from .auth import (
     heartbeat_player,
 )
 from .db import connect, init_db
-from .game_logic import BOARD_SIZE, is_board_full, is_winning_move
+from .config import BOARD_HEIGHT, BOARD_WIDTH
+from .game_logic import is_board_full, is_winning_move
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
@@ -49,8 +50,8 @@ class GameCreateRequest(BaseModel):
 
 
 class MoveRequest(BaseModel):
-    row: int = Field(ge=0, lt=BOARD_SIZE)
-    col: int = Field(ge=0, lt=BOARD_SIZE)
+    row: int = Field(ge=0, lt=BOARD_HEIGHT)
+    col: int = Field(ge=0, lt=BOARD_WIDTH)
 
 
 @app.on_event("startup")
@@ -263,7 +264,7 @@ def _get_moves(conn, game_id: int):
 
 
 def _build_board(moves) -> list[list[int]]:
-    board = [[0 for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+    board = [[0 for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
     for saved in moves:
         board[saved["row_idx"]][saved["col_idx"]] = saved["player"]
     return board
@@ -309,7 +310,7 @@ def _game_state(conn, game_id: int, player_name: str) -> dict:
     player_number=_player_number(game,player_name)
     player1_name=(game['player1_name'] or 'Játékos 1').title()
     player2_name='BOT' if game['mode']=='ai' else (game['player2_name'] or 'Várakozás…').title()
-    return {'game_id':game_id,'mode':game['mode'],'difficulty':game['difficulty'],'status':game['status'],'winner':game['winner'],'next_player':game['next_player'],'player_number':player_number,'player1_name':player1_name,'player2_name':player2_name,'moves':[dict(move) for move in moves]}
+    return {'game_id':game_id,'mode':game['mode'],'difficulty':game['difficulty'],'status':game['status'],'winner':game['winner'],'next_player':game['next_player'],'player_number':player_number,'player1_name':player1_name,'player2_name':player2_name,'board_width':BOARD_WIDTH,'board_height':BOARD_HEIGHT,'moves':[dict(move) for move in moves]}
 
 
 def _is_https(request: Request) -> bool:
