@@ -74,7 +74,6 @@ const gameModeTextEl = document.querySelector('#gameModeText');
 const gameHintEl = document.querySelector('#gameHint');
 const modalNewGameButton = document.querySelector('#modalNewGameButton');
 const modalLobbyButton = document.querySelector('#modalLobbyButton');
-const finishGameButton = document.querySelector('#finishGameButton');
 
 const soundToggle = document.querySelector('#soundToggle');
 const soundToggleIcon = document.querySelector('#soundToggleIcon');
@@ -638,25 +637,6 @@ async function onLoginSubmit(event) {
   }
 }
 
-async function onFinishGame() {
-  if (!gameId) {
-    showMode(currentUsername, currentIdentity);
-    return;
-  }
-
-  finishGameButton.disabled = true;
-  try {
-    await finishGame(gameId);
-    stopPolling();
-    showMode(currentUsername, currentIdentity);
-  } catch (error) {
-    if (isAuthError(error)) showLogin();
-    else alert(error.message);
-  } finally {
-    finishGameButton.disabled = false;
-  }
-}
-
 async function onLogout() {
   stopPolling();
 
@@ -822,7 +802,6 @@ difficultyButtons.forEach(button => {
 });
 modalNewGameButton.addEventListener('click', () => startNewGameFromResult());
 modalLobbyButton.addEventListener('click', returnToLobby);
-finishGameButton.addEventListener('click', onFinishGame);
 soundToggle.addEventListener('click', onSoundToggle);
 
 initialize();
