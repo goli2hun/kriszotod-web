@@ -4,12 +4,12 @@ import random
 import unittest
 
 from app.ai import choose_ai_move
-from app.game_logic import BOARD_SIZE
+from app.config import BOARD_HEIGHT, BOARD_WIDTH
 
 
 class AiTests(unittest.TestCase):
     def empty_board(self):
-        return [[0 for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+        return [[0 for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
 
     def test_ai_finishes_immediate_win(self):
         board = self.empty_board()
