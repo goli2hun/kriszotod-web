@@ -38,7 +38,9 @@ class AiTests(unittest.TestCase):
     def test_empty_board_starts_near_center(self):
         board = self.empty_board()
         move = choose_ai_move(board, difficulty="normal", rng=random.Random(4))
-        self.assertIn(move, {(4, 4), (4, 5), (5, 4), (5, 5)})
+        center_rows = {(BOARD_HEIGHT - 1) // 2, BOARD_HEIGHT // 2}
+        center_cols = {(BOARD_WIDTH - 1) // 2, BOARD_WIDTH // 2}
+        self.assertIn(move, {(row, col) for row in center_rows for col in center_cols})
 
     def test_ai_returns_only_empty_cell(self):
         board = self.empty_board()
